@@ -59,3 +59,9 @@ create policy "profile: own read" on public.profiles for select using (id = auth
 create policy "events: current read" on public.events for select using (status = 'current');
 create policy "registrations: own read" on public.registrations for select using (user_id = auth.uid());
 -- Operacje administracyjne wykonuje wyłącznie backend z kluczem service_role.
+
+-- Tabele zostały utworzone przez właściciela bazy, więc backendowa rola service_role
+-- potrzebuje jawnych uprawnień do wykonywania bezpiecznych operacji serwerowych.
+grant usage on schema public to service_role;
+grant all privileges on table public.profiles, public.events, public.registrations to service_role;
+grant execute on function public.register_for_event(uuid, uuid) to service_role;

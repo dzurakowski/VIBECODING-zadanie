@@ -17,7 +17,7 @@ export const createApp = () => {
   const registrations = createRegistrationsService(createRegistrationsRepository(serviceSupabase));
   const users = createUsersService(usersRepo);
   const auth = createAuth({ authClient: supabase, usersRepository: usersRepo });
-  const authService = createAuthService(supabase, usersRepo);
+  const authService = createAuthService(supabase, usersRepo, config.appUrl);
 
   return async (request, response, pathname) => {
     try {

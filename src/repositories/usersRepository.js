@@ -3,8 +3,8 @@ export const createUsersRepository = (db) => ({
   async list() { const { data, error } = await db.from('profiles').select('*').order('full_name'); if (error) throw error; return data; },
   async update(id, values) { const { data, error } = await db.from('profiles').update(values).eq('id', id).select().maybeSingle(); if (error) throw error; return data; },
   async createAuthUser({ email, fullName, role, password }) {
-    const options = { data: { full_name: fullName } };
-    if (password) options.password = password; else options.email_confirm = true;
+    const options = { data: { full_name: fullName }, email_confirm: true };
+    if (password) options.password = password;
     const { data, error } = await db.auth.admin.createUser({ email, ...options });
     if (error) throw error;
     const { error: profileError } = await db.from('profiles').insert({ id: data.user.id, email, full_name: fullName, role });

@@ -1,0 +1,15 @@
+# Sekrety i lokalna konfiguracja
+.env
+.env.*
+!.env.example
+
+# Zależności i artefakty budowania
+node_modules/
+dist/
+build/
+coverage/
+
+# Metadane systemu Windows
+*:Zone.Identifier
+Thumbs.db
+Desktop.ini

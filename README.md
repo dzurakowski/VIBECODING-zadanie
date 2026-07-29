@@ -15,3 +15,11 @@ Szczegóły ról, logowania, odzyskiwania haseł i obsługi panelu opisuje [DOKU
 Strona użytkownika jest pod `http://localhost:3000`, a panel administracyjny pod `http://localhost:3000/admin`.
 
 Pierwszego administratora utwórz w Supabase Auth, a następnie dodaj dla niego rekord w `profiles` z rolą `admin`.
+
+## Dane demonstracyjne
+
+Mechanizm seedowania tworzy wyłącznie syntetyczne rekordy oznaczone prefiksem `[TEST]`. Nie uruchamiaj go dla środowiska produkcyjnego.
+
+W lokalnym `.env` ustaw `ALLOW_SEED=true` oraz hasło testowe w `SEED_TEST_PASSWORD` (minimum 10 znaków), a następnie uruchom `npm run seed`. Skrypt pokaże plan i wymaga wpisania `SEED` przed zapisem do bazy.
+
+Usunięcie wyłącznie danych `[TEST]` wykonuje `npm run seed:cleanup`; wymaga ono wpisania `CLEANUP`. Nie dodawaj tych wartości do `.env.example` ani repozytorium.

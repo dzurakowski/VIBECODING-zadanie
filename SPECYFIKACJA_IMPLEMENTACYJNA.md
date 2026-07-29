@@ -768,3 +768,13 @@ Przy implementacji:
 - nie dodawaj publicznej rejestracji,
 - nie pomijaj zabezpieczeń serwera,
 - na końcu raportuj zgodność z punktami kryteriów gotowości.
+
+## 19. Rozszerzenia kont i panelu administratora
+
+- panel administratora ma zakładki: wydarzenia, użytkownicy i moje konto,
+- administrator i użytkownik mogą logować się przez magic link,
+- zaproszony użytkownik sam ustawia pierwsze hasło,
+- hasło ma minimum 10 znaków,
+- system obsługuje zmianę hasła po zalogowaniu oraz odzyskiwanie przez e-mail,
+- administrator może dezaktywować, przywrócić lub trwale usunąć konto; nie może usunąć siebie ani ostatniego aktywnego administratora,
+- wydarzenie można trwale usunąć wyłącznie po archiwizacji i usunięciu wszystkich zapisów.

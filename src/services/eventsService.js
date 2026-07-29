@@ -19,5 +19,6 @@ export const createEventsService = (repository, defaultCapacity) => ({
   async update(id, input) { const event = await repository.update(id, eventValues(input, true)); if (!event) throw new HttpError(404, 'Wydarzenie nie istnieje.'); return present(event); },
   async changeStatus(id, status) { return this.update(id, { status }); },
   async registrations(id) { if (!await repository.find(id)) throw new HttpError(404, 'Wydarzenie nie istnieje.'); return repository.registrations(id); },
-  async reset(id) { if (!await repository.find(id)) throw new HttpError(404, 'Wydarzenie nie istnieje.'); await repository.reset(id); }
+  async reset(id) { if (!await repository.find(id)) throw new HttpError(404, 'Wydarzenie nie istnieje.'); await repository.reset(id); },
+  async remove(id) { const event = await repository.find(id); if (!event) throw new HttpError(404, 'Wydarzenie nie istnieje.'); if (event.status !== 'archived') throw new HttpError(409, 'Przed usunięciem zarchiwizuj wydarzenie.'); if (await repository.registrationCount(id) > 0) throw new HttpError(409, 'Przed usunięciem wyczyść zapisy wydarzenia.'); await repository.delete(id); }
 });

@@ -8,6 +8,7 @@ export const createAuth = ({ authClient, usersRepository }) => ({
     if (error || !data.user) throw new HttpError(401, 'Sesja wygasła lub jest nieprawidłowa.');
     const profile = await usersRepository.find(data.user.id);
     if (!profile) throw new HttpError(403, 'Konto nie ma skonfigurowanego profilu.');
+    if (!profile.is_active) throw new HttpError(403, 'Konto zostało dezaktywowane.');
     return profile;
   },
   async admin(request) { const user = await this.current(request); if (user.role !== 'admin') throw new HttpError(403, 'Ta operacja wymaga roli administratora.'); return user; }

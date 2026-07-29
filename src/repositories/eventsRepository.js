@@ -14,4 +14,6 @@ export const createEventsRepository = (db) => ({
     if (error) throw error; return data;
   },
   async reset(eventId) { const { error } = await db.from('registrations').delete().eq('event_id', eventId); if (error) throw error; }
+  ,async registrationCount(eventId) { const { count, error } = await db.from('registrations').select('id', { count: 'exact', head: true }).eq('event_id', eventId); if (error) throw error; return count ?? 0; }
+  ,async delete(id) { const { data, error } = await db.from('events').delete().eq('id', id).select('id').maybeSingle(); if (error) throw error; return data; }
 });

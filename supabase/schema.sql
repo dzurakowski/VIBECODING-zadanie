@@ -6,6 +6,7 @@ create table public.profiles (
   email text not null unique,
   full_name text not null,
   role text not null default 'user' check (role in ('user', 'admin')),
+  is_active boolean not null default true,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

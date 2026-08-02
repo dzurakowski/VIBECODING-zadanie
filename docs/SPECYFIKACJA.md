@@ -77,6 +77,7 @@ Aplikacja ma działać jako prosty, produkcyjny serwis z:
 - rejestracja na wydarzenie wymaga zalogowania,
 - zapis na to samo wydarzenie jest możliwy tylko raz,
 - zapis na wydarzenie archiwalne jest blokowany,
+- zapis na wydarzenie, którego termin już minął, jest blokowany,
 - limit miejsc jest liczony per wydarzenie,
 - anulowanie zapisu działa tylko dla przyszłych wydarzeń,
 - ostatni aktywny administrator nie może zostać zdegradowany, dezaktywowany ani usunięty,
@@ -160,4 +161,3 @@ Sesja jest przekazywana jako Bearer token w żądaniach API. Backend pobiera pro
 - formularz zaproszenia użytkownika,
 - przełącznik rejestracji nowych kont,
 - formularz zmiany hasła administratora.
-

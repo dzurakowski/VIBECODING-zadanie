@@ -14,6 +14,7 @@ Aplikacja do zapisów na wydarzenia z panelem użytkownika i panelem administrat
 - opcjonalna rejestracja użytkowników sterowana przełącznikiem administratora,
 - lista bieżących wydarzeń dla użytkownika,
 - lista własnych zapisów z możliwością rezygnacji tylko dla przyszłych wydarzeń,
+- zapis na wydarzenie, którego data już minęła, jest blokowany,
 - panel administratora pod `/admin`,
 - tworzenie, edycja, archiwizacja, przywracanie i usuwanie wydarzeń,
 - zarządzanie użytkownikami, rolami i aktywnością kont,
@@ -49,6 +50,22 @@ Adresy lokalne:
 npm test
 ```
 
+## Seedowanie danych
+
+Do lokalnych testów możesz przygotować syntetyczne dane:
+
+```bash
+npm run seed
+```
+
+Skrypt tworzy konta testowe, wydarzenia i zapisy. Do pełnego wyczyszczenia bazy z pozostawieniem wyłącznie konta `Dariusz Administrator <dariusz@example.test>` użyj:
+
+```bash
+npm run seed:cleanup
+```
+
+Obie operacje wymagają lokalnego `.env` z `ALLOW_SEED=true` oraz `SEED_TEST_PASSWORD`.
+
 ## Konfiguracja środowiska
 
 W `.env` używane są:
@@ -69,4 +86,3 @@ Plik `.env.example` zawiera aktualny zestaw wymaganych zmiennych.
 - [Specyfikacja rozwiązania](docs/SPECYFIKACJA.md)
 - [Wdrożenie i hosting](docs/HOSTING.md)
 - [Archiwum dokumentów](docs/ARCHIVE.md)
-

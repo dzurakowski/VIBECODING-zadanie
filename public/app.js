@@ -30,6 +30,7 @@ const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character
 }[character]));
 const format = (date) => new Intl.DateTimeFormat('pl-PL', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date));
 const formatShort = (date) => new Intl.DateTimeFormat('pl-PL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(date));
+const isPastEvent = (eventDatetime) => new Date(eventDatetime) < new Date();
 const currentEventsState = {
   sortBy: defaultCurrentEventsState.sortBy,
   sortDirection: defaultCurrentEventsState.sortDirection,
@@ -136,7 +137,7 @@ const renderCurrentEvents = () => {
       <td>${escapeHtml(event.status === 'current' ? 'Bieżące' : 'Archiwalne')}</td>
       <td>${escapeHtml(event.isRegistered ? 'Zapisano' : 'Do zapisania')}</td>
       <td><div class="actions">
-        <button data-register-id="${event.id}" ${event.isRegistered || !event.remainingSeats ? 'disabled' : ''}>${event.isRegistered ? 'Już zapisano' : event.remainingSeats ? 'Zapisz się' : 'Brak miejsc'}</button>
+        <button data-register-id="${event.id}" ${event.isRegistered || !event.remainingSeats || isPastEvent(event.eventDatetime) ? 'disabled' : ''}>${event.isRegistered ? 'Już zapisano' : isPastEvent(event.eventDatetime) ? 'Wydarzenie minęło' : event.remainingSeats ? 'Zapisz się' : 'Brak miejsc'}</button>
       </div></td>
     </tr>`).join('')}
   </table>` : '<p>Brak bieżących wydarzeń.</p>';

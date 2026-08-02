@@ -1,6 +1,6 @@
 import { HttpError } from '../utils/http.js';
 
-const errors = { EVENT_NOT_FOUND: [404, 'Wydarzenie nie istnieje.'], EVENT_ARCHIVED: [409, 'Nie można zapisać się na wydarzenie archiwalne.'], ALREADY_REGISTERED: [409, 'Jesteś już zapisany na to wydarzenie.'], EVENT_FULL: [409, 'Brak wolnych miejsc.'] };
+const errors = { EVENT_NOT_FOUND: [404, 'Wydarzenie nie istnieje.'], EVENT_ARCHIVED: [409, 'Nie można zapisać się na wydarzenie archiwalne.'], EVENT_PAST: [409, 'Nie można zapisać się na wydarzenie, które już się odbyło.'], ALREADY_REGISTERED: [409, 'Jesteś już zapisany na to wydarzenie.'], EVENT_FULL: [409, 'Brak wolnych miejsc.'] };
 const now = () => new Date();
 const isPast = (eventDatetime, currentTime = now()) => new Date(eventDatetime) <= currentTime;
 

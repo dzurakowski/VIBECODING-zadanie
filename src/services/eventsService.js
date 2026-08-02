@@ -1,7 +1,23 @@
 import { HttpError } from '../utils/http.js';
 import { assertCapacity, assertDate, assertStatus, assertText } from '../utils/validation.js';
 
-const present = (event) => ({ id: event.id, name: event.name, description: event.description, eventDatetime: event.event_datetime, status: event.status, capacity: event.capacity, registeredCount: event.registrations?.length ?? event.registered_count ?? 0, remainingSeats: Math.max(0, event.capacity - (event.registrations?.length ?? event.registered_count ?? 0)), isRegistered: event.isRegistered ?? false });
+const present = (event) => {
+  const registeredCount = event.registrations?.length ?? event.registered_count ?? 0;
+  const remainingSeats = Math.max(0, event.capacity - registeredCount);
+  const isPast = new Date(event.event_datetime) < new Date();
+  return {
+    id: event.id,
+    name: event.name,
+    description: event.description,
+    eventDatetime: event.event_datetime,
+    status: event.status,
+    capacity: event.capacity,
+    registeredCount,
+    remainingSeats,
+    isRegistered: event.isRegistered ?? false,
+    canRegister: event.status === 'current' && !isPast && remainingSeats > 0 && !(event.isRegistered ?? false)
+  };
+};
 const eventValues = (input, partial = false) => {
   const result = {};
   if (!partial || 'name' in input) result.name = assertText(input.name, 'Nazwa wydarzenia');

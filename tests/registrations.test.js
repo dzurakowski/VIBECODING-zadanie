@@ -8,6 +8,11 @@ test('mapuje konflikt duplikatu na komunikat biznesowy', async () => {
   await assert.rejects(() => service.register('event', 'user'), (error) => error instanceof HttpError && error.status === 409 && error.message.includes('już zapisany'));
 });
 
+test('mapuje próbę zapisu na przeszłe wydarzenie na komunikat biznesowy', async () => {
+  const service = createRegistrationsService({ register: async () => { throw new Error('EVENT_PAST'); } });
+  await assert.rejects(() => service.register('event', 'user'), (error) => error instanceof HttpError && error.status === 409 && error.message.includes('już się odbyło'));
+});
+
 test('zwraca utworzony zapis', async () => {
   const service = createRegistrationsService({ register: async () => ({ id: 'reg', event_id: 'event', user_id: 'user' }) });
   assert.deepEqual(await service.register('event', 'user'), { id: 'reg', eventId: 'event', userId: 'user' });

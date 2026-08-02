@@ -2,9 +2,16 @@ import 'dotenv/config';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { serviceSupabase } from '../src/infrastructure/supabaseClient.js';
+import {
+  KEEP_ADMIN,
+  buildResetPlan,
+  createSeedEventRows,
+  createSeedEventBlueprints,
+  createSeedRegistrationRows,
+  createSeedUsers
+} from './seed-data.js';
 
-const TEST_PREFIX = '[TEST]';
-const cleanupMode = process.argv.includes('--cleanup');
+const cleanupMode = process.argv.includes('--cleanup') || process.argv.includes('--reset');
 const required = ['SUPABASE_URL', 'SUPABASE_SECRET_KEY', 'ALLOW_SEED', 'SEED_TEST_PASSWORD'];
 
 const fail = (message) => { throw new Error(message); };
@@ -22,67 +29,74 @@ const confirm = async (word) => {
   if (answer !== word) fail('Operacja anulowana — nie podano wymaganego potwierdzenia.');
 };
 
-const testUsers = [
-  { email: 'test-admin@example.test', fullName: `${TEST_PREFIX} Administrator`, role: 'admin' },
-  { email: 'test-user-01@example.test', fullName: `${TEST_PREFIX} Użytkownik 01`, role: 'user' },
-  { email: 'test-user-02@example.test', fullName: `${TEST_PREFIX} Użytkownik 02`, role: 'user' },
-  { email: 'test-user-03@example.test', fullName: `${TEST_PREFIX} Użytkownik 03`, role: 'user' },
-  { email: 'test-user-04@example.test', fullName: `${TEST_PREFIX} Użytkownik 04`, role: 'user' },
-  { email: 'test-user-05@example.test', fullName: `${TEST_PREFIX} Użytkownik 05`, role: 'user' }
-];
+const listAllAuthUsers = async () => {
+  const users = [];
+  let page = 1;
+  while (true) {
+    const { data, error } = await serviceSupabase.auth.admin.listUsers({ page, perPage: 1000 });
+    check({ error }, 'Nie udało się pobrać listy kont Auth');
+    users.push(...data.users);
+    if (!data.nextPage) break;
+    page = data.nextPage;
+  }
+  return users;
+};
 
 const seed = async () => {
-  console.log('Plan: 1 administrator, 5 użytkowników, 3 bieżące wydarzenia, 1 archiwalne wydarzenie oraz 3 zapisy.');
+  const users = createSeedUsers();
+  const events = createSeedEventBlueprints();
+  const registrationCount = events.reduce((sum, event) => sum + event.registrantEmails.length, 0);
+  console.log(`Plan: ${users.filter((user) => user.role === 'admin').length} administratorów, ${users.filter((user) => user.role === 'user').length} użytkowników, ${events.length} wydarzeń i ${registrationCount} zapisów.`);
   await confirm('SEED');
-  const users = [];
-  for (const testUser of testUsers) {
+  const insertedUsers = [];
+  for (const testUser of users) {
     const { data, error } = await serviceSupabase.auth.admin.createUser({
       email: testUser.email,
       password: process.env.SEED_TEST_PASSWORD,
       email_confirm: true,
-      user_metadata: { seed: true, full_name: testUser.fullName }
+      user_metadata: { seed: true, full_name: testUser.fullName, role: testUser.role }
     });
     check({ error }, `Nie udało się utworzyć konta ${testUser.email}`);
     const user = { ...testUser, id: data.user.id };
-    users.push(user);
-    const result = await serviceSupabase.from('profiles').insert({ id: user.id, email: user.email, full_name: user.fullName, role: user.role, is_active: true });
+    insertedUsers.push(user);
+    const result = await serviceSupabase.from('profiles').insert({ id: user.id, email: user.email, full_name: user.fullName, role: user.role, is_active: user.isActive });
     check(result, `Nie udało się utworzyć profilu ${testUser.email}`);
+    if (!user.isActive) {
+      const { error: banError } = await serviceSupabase.auth.admin.updateUserById(user.id, { ban_duration: '876000h' });
+      check({ error: banError }, `Nie udało się zablokować konta ${testUser.email}`);
+    }
   }
 
-  const admin = users.find((user) => user.role === 'admin');
-  const eventRows = [
-    { name: `${TEST_PREFIX} Wydarzenie pełne`, description: 'Syntetyczne wydarzenie o pełnej liście miejsc.', event_datetime: '2026-12-10T10:00:00.000Z', status: 'current', capacity: 2, created_by: admin.id },
-    { name: `${TEST_PREFIX} Wydarzenie z jednym zapisem`, description: 'Syntetyczne wydarzenie z jednym uczestnikiem.', event_datetime: '2026-12-11T10:00:00.000Z', status: 'current', capacity: 3, created_by: admin.id },
-    { name: `${TEST_PREFIX} Wydarzenie z wolnymi miejscami`, description: 'Syntetyczne wydarzenie bez zapisów.', event_datetime: '2026-12-12T10:00:00.000Z', status: 'current', capacity: 4, created_by: admin.id },
-    { name: `${TEST_PREFIX} Wydarzenie archiwalne`, description: 'Syntetyczne wydarzenie archiwalne bez zapisów.', event_datetime: '2026-11-01T10:00:00.000Z', status: 'archived', capacity: 2, created_by: admin.id }
-  ];
-  const { data: events, error: eventsError } = await serviceSupabase.from('events').insert(eventRows).select('id, name');
+  const usersByEmail = new Map(insertedUsers.map((user) => [user.email, user]));
+  const eventRows = createSeedEventRows(usersByEmail);
+  const { data: insertedEvents, error: eventsError } = await serviceSupabase.from('events').insert(eventRows).select('id, name');
   check({ error: eventsError }, 'Nie udało się utworzyć wydarzeń testowych');
-  const eventByName = new Map(events.map((event) => [event.name, event.id]));
-  const registrations = [
-    { event_id: eventByName.get(`${TEST_PREFIX} Wydarzenie pełne`), user_id: users[1].id },
-    { event_id: eventByName.get(`${TEST_PREFIX} Wydarzenie pełne`), user_id: users[2].id },
-    { event_id: eventByName.get(`${TEST_PREFIX} Wydarzenie z jednym zapisem`), user_id: users[3].id }
-  ];
-  check(await serviceSupabase.from('registrations').insert(registrations), 'Nie udało się utworzyć zapisów testowych');
-  console.log('Seedowanie zakończone: utworzono 6 kont Auth/profili, 4 wydarzenia i 3 zapisy.');
+  const eventsByName = new Map(insertedEvents.map((event) => [event.name, event]));
+  const registrations = createSeedRegistrationRows(usersByEmail, eventsByName);
+  if (registrations.length) {
+    check(await serviceSupabase.from('registrations').insert(registrations), 'Nie udało się utworzyć zapisów testowych');
+  }
+  console.log(`Seedowanie zakończone: utworzono ${insertedUsers.length} kont Auth/profili, ${insertedEvents.length} wydarzeń i ${registrations.length} zapisów.`);
 };
 
 const cleanup = async () => {
-  console.log('Plan: usunięcie wyłącznie rekordów oznaczonych prefiksem [TEST] oraz odpowiadających im kont Auth.');
-  await confirm('CLEANUP');
-  const { data: profiles, error: profilesError } = await serviceSupabase.from('profiles').select('id').like('full_name', `${TEST_PREFIX}%`);
-  check({ error: profilesError }, 'Nie udało się pobrać profili testowych');
-  const userIds = profiles.map((profile) => profile.id);
-  const { data: events, error: eventsError } = await serviceSupabase.from('events').select('id').like('name', `${TEST_PREFIX}%`);
-  check({ error: eventsError }, 'Nie udało się pobrać wydarzeń testowych');
-  const eventIds = events.map((event) => event.id);
-  if (userIds.length) check(await serviceSupabase.from('registrations').delete().in('user_id', userIds), 'Nie udało się usunąć zapisów użytkowników testowych');
-  if (eventIds.length) check(await serviceSupabase.from('registrations').delete().in('event_id', eventIds), 'Nie udało się usunąć zapisów wydarzeń testowych');
-  if (eventIds.length) check(await serviceSupabase.from('events').delete().in('id', eventIds), 'Nie udało się usunąć wydarzeń testowych');
-  if (userIds.length) check(await serviceSupabase.from('profiles').delete().in('id', userIds), 'Nie udało się usunąć profili testowych');
-  for (const userId of userIds) check(await serviceSupabase.auth.admin.deleteUser(userId), `Nie udało się usunąć konta Auth ${userId}`);
-  console.log(`Czyszczenie zakończone: usunięto ${userIds.length} kont testowych i ${eventIds.length} wydarzeń testowych.`);
+  console.log(`Plan: usunięcie wszystkich wydarzeń i wszystkich kont poza ${KEEP_ADMIN.fullName} <${KEEP_ADMIN.email}>.`);
+  await confirm('RESET');
+  const { data: profiles, error: profilesError } = await serviceSupabase.from('profiles').select('id, email, full_name');
+  check({ error: profilesError }, 'Nie udało się pobrać profili');
+  const { data: events, error: eventsError } = await serviceSupabase.from('events').select('id');
+  check({ error: eventsError }, 'Nie udało się pobrać wydarzeń');
+  const authUsers = await listAllAuthUsers();
+  const plan = buildResetPlan({ authUsers, profiles, events, keepAdmin: KEEP_ADMIN });
+
+  if (events.length) check(await serviceSupabase.from('registrations').delete(), 'Nie udało się usunąć zapisów');
+  if (events.length) check(await serviceSupabase.from('events').delete(), 'Nie udało się usunąć wydarzeń');
+  if (plan.profileIdsToDelete.length) check(await serviceSupabase.from('profiles').delete().in('id', plan.profileIdsToDelete), 'Nie udało się usunąć profili');
+  for (const userId of plan.authUserIdsToDelete) {
+    check(await serviceSupabase.auth.admin.deleteUser(userId), `Nie udało się usunąć konta Auth ${userId}`);
+  }
+
+  console.log(`Czyszczenie zakończone: zachowano ${KEEP_ADMIN.fullName}, usunięto ${plan.profileIdsToDelete.length} profili, ${plan.authUserIdsToDelete.length} kont Auth i ${events.length} wydarzeń.`);
 };
 
 try {

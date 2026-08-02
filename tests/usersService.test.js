@@ -30,3 +30,23 @@ test('blokuje wyłączenie ostatniego aktywnego administratora', async () => {
   await assert.rejects(() => service.setActive('admin-1', false, 'other-admin'), (error) => error instanceof HttpError && error.status === 409);
   assert.equal(changed, false);
 });
+
+test('pozwala zmienić rolę admina, jeśli istnieje drugi aktywny administrator', async () => {
+  let updatedValues;
+  const service = createUsersService({
+    find: async () => ({ id: 'admin-1', role: 'admin' }),
+    countAdmins: async () => 2,
+    update: async (id, values) => {
+      updatedValues = { id, values };
+      return { id, ...values };
+    }
+  }, 'http://localhost:3000');
+
+  const result = await service.update('admin-1', { role: 'user' });
+
+  assert.deepEqual(updatedValues, {
+    id: 'admin-1',
+    values: { role: 'user' }
+  });
+  assert.deepEqual(result, { id: 'admin-1', role: 'user' });
+});

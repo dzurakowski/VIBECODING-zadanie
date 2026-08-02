@@ -76,6 +76,41 @@ test('nie dopasowuje częściowych wartości liczbowych', () => {
   assert.deepEqual(filtered, []);
 });
 
+test('wymaga dokładnego dopasowania liczby zapisów i wolnych miejsc', () => {
+  const filteredByRegistered = filterAndSortEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '',
+      registeredCount: '12',
+      remainingSeats: '',
+      status: '',
+      participants: ''
+    }
+  });
+
+  const filteredByRemaining = filterAndSortEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '',
+      registeredCount: '',
+      remainingSeats: '8',
+      status: '',
+      participants: ''
+    }
+  });
+
+  assert.deepEqual(filteredByRegistered, [events[0]]);
+  assert.deepEqual(filteredByRemaining, [events[0]]);
+});
+
 test('sortuje wydarzenia po dacie i pojemności', () => {
   assert.deepEqual(sortEvents(events, 'eventDatetime', 'asc').map((event) => event.name), [
     'Warsztat',

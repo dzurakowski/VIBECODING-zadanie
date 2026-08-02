@@ -68,6 +68,39 @@ test('nie traktuje dopasowania fragmentu liczby jako zgodnego filtra', () => {
   assert.deepEqual(filtered, []);
 });
 
+test('wymaga dokładnego dopasowania pojemności i wolnych miejsc', () => {
+  const filteredByCapacity = filterAndSortCurrentEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '10',
+      remainingSeats: '',
+      status: '',
+      isRegistered: ''
+    }
+  });
+
+  const filteredByRemaining = filterAndSortCurrentEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '',
+      remainingSeats: '12',
+      status: '',
+      isRegistered: ''
+    }
+  });
+
+  assert.deepEqual(filteredByCapacity, [events[1]]);
+  assert.deepEqual(filteredByRemaining, [events[2]]);
+});
+
 test('sortuje bieżące wydarzenia po dacie i statusie zapisu', () => {
   assert.deepEqual(sortCurrentEvents(events, 'eventDatetime', 'asc').map((event) => event.name), [
     'Warsztat',

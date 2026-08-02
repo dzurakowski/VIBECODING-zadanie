@@ -30,6 +30,7 @@ Panel ma trzy zakładki:
 
 - **Wydarzenia** — tworzenie wydarzeń, lista uczestników pod kartą, archiwizacja/przywracanie, reset zapisów i trwałe usunięcie.
 - **Użytkownicy** — przełącznik włączający i wyłączający samodzielną rejestrację, wysyłanie zaproszeń, podgląd ról i statusów, dezaktywacja/przywracanie oraz trwałe usunięcie.
+- **Użytkownicy** — lista może być filtrowana i sortowana po imieniu i nazwisku, e-mailu, roli oraz statusie.
 - **Moje konto** — zmiana hasła aktualnego administratora.
 
 Wydarzenie można trwale usunąć wyłącznie, gdy jest zarchiwizowane i nie ma zapisów. Przed usunięciem zapisów administrator używa akcji resetu.

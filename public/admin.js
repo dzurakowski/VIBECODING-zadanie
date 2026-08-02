@@ -1,6 +1,17 @@
+import { defaultUserTableState, filterAndSortUsers, getUserStatusLabel } from './shared/userTable.js';
+
 const key = 'events_access_token';
 const notice = document.querySelector('#notice');
 const registrationToggle = document.querySelector('#registration-toggle');
+const usersFiltersForm = document.querySelector('#users-filters');
+const usersFiltersReset = document.querySelector('#users-filters-reset');
+const usersTable = document.querySelector('#users');
+const usersState = {
+  sortBy: defaultUserTableState.sortBy,
+  sortDirection: defaultUserTableState.sortDirection,
+  filters: { ...defaultUserTableState.filters }
+};
+let allUsers = [];
 
 const callbackToken = new URLSearchParams(window.location.hash.slice(1)).get('access_token');
 if (callbackToken) {
@@ -40,6 +51,66 @@ const clearError = () => {
 };
 
 const date = (value) => new Date(value).toLocaleString('pl-PL');
+const sortIndicator = (field) => {
+  if (usersState.sortBy !== field) return '↕';
+  return usersState.sortDirection === 'asc' ? '↑' : '↓';
+};
+const toggleSort = (field) => {
+  if (usersState.sortBy === field) {
+    usersState.sortDirection = usersState.sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    usersState.sortBy = field;
+    usersState.sortDirection = 'asc';
+  }
+};
+const readFilters = () => Object.fromEntries(new FormData(usersFiltersForm));
+const syncFilters = () => {
+  usersState.filters = readFilters();
+  renderUsers();
+};
+const renderUsers = () => {
+  const users = filterAndSortUsers(allUsers, usersState);
+  usersTable.innerHTML = `<table>
+    <tr>
+      <th><button class="table-sort ${usersState.sortBy === 'full_name' ? 'active' : ''}" type="button" data-user-sort="full_name">Imię i nazwisko <span class="sort-indicator">${sortIndicator('full_name')}</span></button></th>
+      <th><button class="table-sort ${usersState.sortBy === 'email' ? 'active' : ''}" type="button" data-user-sort="email">E-mail <span class="sort-indicator">${sortIndicator('email')}</span></button></th>
+      <th><button class="table-sort ${usersState.sortBy === 'role' ? 'active' : ''}" type="button" data-user-sort="role">Rola <span class="sort-indicator">${sortIndicator('role')}</span></button></th>
+      <th><button class="table-sort ${usersState.sortBy === 'is_active' ? 'active' : ''}" type="button" data-user-sort="is_active">Status <span class="sort-indicator">${sortIndicator('is_active')}</span></button></th>
+      <th>Akcje</th>
+    </tr>
+    ${users.map((userRow) => `<tr><td>${userRow.full_name}</td><td>${userRow.email}</td><td>${userRow.role}</td><td>${getUserStatusLabel(userRow.is_active)}</td><td><div class="actions"><button class="secondary" data-user-action="${userRow.is_active ? 'deactivate' : 'restore'}" data-id="${userRow.id}">${userRow.is_active ? 'Dezaktywuj' : 'Przywróć'}</button><button class="danger" data-user-action="delete" data-id="${userRow.id}">Usuń trwale</button></div></td></tr>`).join('')}
+  </table>`;
+
+  document.querySelectorAll('[data-user-sort]').forEach((button) => {
+    button.onclick = () => {
+      toggleSort(button.dataset.userSort);
+      renderUsers();
+    };
+  });
+};
+
+usersTable.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-user-action]');
+  if (!button) return;
+  try {
+    const action = button.dataset.userAction;
+    if (action === 'delete') {
+      if (!confirm('Trwale usunąć konto i powiązane zapisy?')) return;
+      await api(`/api/admin/users/${button.dataset.id}`, { method: 'DELETE' });
+    } else {
+      await api(`/api/admin/users/${button.dataset.id}/${action}`, { method: 'POST' });
+    }
+    message('Zapisano zmianę.');
+    refresh();
+  } catch (error) {
+    if ([401, 403].includes(error.status)) resetAdminView();
+    message(error.message, true);
+  }
+});
+
+usersFiltersForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
 
 const resetAdminView = () => {
   localStorage.removeItem(key);
@@ -47,6 +118,11 @@ const resetAdminView = () => {
   document.querySelector('#login').classList.remove('hidden');
   document.querySelector('#events').textContent = '';
   document.querySelector('#users').textContent = '';
+  usersFiltersForm.reset();
+  usersState.sortBy = defaultUserTableState.sortBy;
+  usersState.sortDirection = defaultUserTableState.sortDirection;
+  usersState.filters = { ...defaultUserTableState.filters };
+  allUsers = [];
   registrationToggle.checked = false;
   registrationToggle.disabled = true;
 };
@@ -90,6 +166,8 @@ async function refresh() {
     ]);
     registrationToggle.checked = Boolean(enabled);
     registrationToggle.disabled = false;
+    allUsers = users;
+    renderUsers();
 
     const enriched = await Promise.all(events.map(async (event) => ({
       event,
@@ -97,8 +175,6 @@ async function refresh() {
     })));
 
     document.querySelector('#events').innerHTML = enriched.map(({ event, registrations }) => `<article class="card"><h3>${event.name}</h3><p class="meta">${date(event.eventDatetime)} · ${event.registeredCount}/${event.capacity} miejsc · ${event.status}</p><h4>Uczestnicy (${registrations.length})</h4>${registrations.length ? `<ul class="participants">${registrations.map((registration) => `<li>${registration.profiles.full_name} <span>${registration.profiles.email}</span></li>`).join('')}</ul>` : '<p class="meta">Brak zapisanych użytkowników.</p>'}<div class="actions"><button data-action="status" data-id="${event.id}" data-status="${event.status}">${event.status === 'current' ? 'Archiwizuj' : 'Przywróć'}</button><button class="danger" data-action="reset" data-id="${event.id}">Reset zapisów</button>${event.status === 'archived' && !registrations.length ? `<button class="danger" data-action="delete" data-id="${event.id}">Usuń trwale</button>` : ''}</div></article>`).join('') || '<p>Brak wydarzeń.</p>';
-
-    document.querySelector('#users').innerHTML = `<table><tr><th>Imię i nazwisko</th><th>E-mail</th><th>Rola</th><th>Status</th><th>Akcje</th></tr>${users.map((userRow) => `<tr><td>${userRow.full_name}</td><td>${userRow.email}</td><td>${userRow.role}</td><td>${userRow.is_active ? 'Aktywne' : 'Nieaktywne'}</td><td><div class="actions"><button class="secondary" data-user-action="${userRow.is_active ? 'deactivate' : 'restore'}" data-id="${userRow.id}">${userRow.is_active ? 'Dezaktywuj' : 'Przywróć'}</button><button class="danger" data-user-action="delete" data-id="${userRow.id}">Usuń trwale</button></div></td></tr>`).join('')}</table>`;
 
     document.querySelectorAll('#events button').forEach((button) => {
       button.onclick = async () => {
@@ -121,29 +197,22 @@ async function refresh() {
       };
     });
 
-    document.querySelectorAll('[data-user-action]').forEach((button) => {
-      button.onclick = async () => {
-        try {
-          const action = button.dataset.userAction;
-          if (action === 'delete') {
-            if (!confirm('Trwale usunąć konto i powiązane zapisy?')) return;
-            await api(`/api/admin/users/${button.dataset.id}`, { method: 'DELETE' });
-          } else {
-            await api(`/api/admin/users/${button.dataset.id}/${action}`, { method: 'POST' });
-          }
-          message('Zapisano zmianę.');
-          refresh();
-        } catch (error) {
-          if ([401, 403].includes(error.status)) resetAdminView();
-          message(error.message, true);
-        }
-      };
-    });
   } catch (error) {
     resetAdminView();
     message(error.message, true);
   }
 }
+
+usersFiltersForm.addEventListener('input', syncFilters);
+usersFiltersForm.addEventListener('change', syncFilters);
+usersFiltersForm.addEventListener('reset', () => {
+  queueMicrotask(() => {
+    usersState.sortBy = defaultUserTableState.sortBy;
+    usersState.sortDirection = defaultUserTableState.sortDirection;
+    usersState.filters = { ...defaultUserTableState.filters };
+    renderUsers();
+  });
+});
 
 document.querySelector('#login-form').onsubmit = async (event) => {
   event.preventDefault();

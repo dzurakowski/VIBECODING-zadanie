@@ -126,6 +126,44 @@ label {
   margin: 8px 0 12px;
 }
 
+.table-tools {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  margin: 12px 0 16px;
+}
+
+.table-tools label {
+  margin: 0;
+}
+
+.table-tools input,
+.table-tools select {
+  margin-bottom: 0;
+}
+
+.table-sort {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.table-sort .sort-indicator {
+  color: #526071;
+  font-size: .85rem;
+}
+
+.table-sort.active .sort-indicator {
+  color: #172033;
+}
+
 .notice {
   margin: 18px 0;
   padding: 12px;

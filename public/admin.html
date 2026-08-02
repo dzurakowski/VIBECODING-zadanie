@@ -73,6 +73,28 @@
           <label>Rola<select name="role"><option value="user">Użytkownik</option><option value="admin">Administrator</option></select></label>
           <button>Wyślij zaproszenie</button>
         </form>
+        <h2>Wyszukiwanie i sortowanie</h2>
+        <form id="users-filters" class="table-tools">
+          <label>Imię i nazwisko<input name="fullName" type="text" placeholder="Filtruj po nazwisku"></label>
+          <label>E-mail<input name="email" type="text" placeholder="Filtruj po e-mailu"></label>
+          <label>Rola
+            <select name="role">
+              <option value="">Wszystkie</option>
+              <option value="user">Użytkownik</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </label>
+          <label>Status
+            <select name="status">
+              <option value="">Wszystkie</option>
+              <option value="active">Aktywne</option>
+              <option value="inactive">Nieaktywne</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button class="secondary" type="reset" id="users-filters-reset">Wyczyść filtry</button>
+          </div>
+        </form>
         <h2>Użytkownicy</h2>
         <div id="users"></div>
       </section>

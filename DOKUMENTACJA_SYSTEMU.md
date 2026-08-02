@@ -31,6 +31,7 @@ Panel ma trzy zakładki:
 - **Moje konto** — zmiana hasła aktualnego administratora.
 
 Wydarzenie można trwale usunąć wyłącznie, gdy jest zarchiwizowane i nie ma zapisów. Przed usunięciem zapisów administrator używa akcji resetu.
+Przycisk `Usuń trwale` jest widoczny tylko wtedy, gdy wydarzenie spełnia oba warunki: ma status `archived` i nie ma żadnych zapisów.
 
 Konto można dezaktywować bez utraty historii. Trwałe usunięcie konta usuwa konto Auth, profil i — na mocy kluczy obcych — powiązane zapisy. Administrator nie może usunąć lub dezaktywować własnego konta ani ostatniego aktywnego administratora.
 

@@ -16,6 +16,7 @@ Szczegóły ról, logowania, odzyskiwania haseł i obsługi panelu opisuje [DOKU
 Strona użytkownika jest pod `http://localhost:3000`, a panel administracyjny pod `http://localhost:3000/admin`.
 
 Pierwszego administratora utwórz w Supabase Auth, a następnie dodaj dla niego rekord w `profiles` z rolą `admin`.
+Przycisk `Usuń trwale` dla wydarzeń pojawia się tylko przy zarchiwizowanych wydarzeniach bez zapisów.
 
 ## Dane demonstracyjne
 

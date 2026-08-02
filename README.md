@@ -1,30 +1,72 @@
-# VIBECODING-zadanie
+# Zapisy na wydarzenia
 
-Aplikacja do zapisów na wydarzenia, z rolami użytkownika i administratora.
+Aplikacja do zapisów na wydarzenia z panelem użytkownika i panelem administratora. Projekt działa w modelu:
 
-Szczegóły ról, logowania, odzyskiwania haseł i obsługi panelu opisuje [DOKUMENTACJA_SYSTEMU.md](DOKUMENTACJA_SYSTEMU.md).
+- frontend statyczny serwowany przez Node.js,
+- backend Node.js jako warstwa API,
+- Supabase jako baza danych i warstwa uwierzytelniania.
 
-## Uruchomienie
+## Najważniejsze funkcje
 
-1. Skopiuj `.env.example` do `.env` i uzupełnij dane projektu Supabase.
-2. Uruchom [supabase/schema.sql](supabase/schema.sql) w SQL Editorze Supabase.
-   Dla istniejącej bazy wykonaj także [supabase/migrations/20260728_user_management.sql](supabase/migrations/20260728_user_management.sql).
-   Przy zmianach związanych z rejestracją użytkowników uruchom też [supabase/migrations/20260802_registration_settings.sql](supabase/migrations/20260802_registration_settings.sql).
-3. Zainstaluj zależności: `npm install`.
-4. Uruchom aplikację: `npm run dev`.
+- logowanie e-mailem i hasłem,
+- logowanie przez magic link,
+- odzyskiwanie i ustawianie hasła na `/set-password`,
+- opcjonalna rejestracja użytkowników sterowana przełącznikiem administratora,
+- lista bieżących wydarzeń dla użytkownika,
+- lista własnych zapisów z możliwością rezygnacji tylko dla przyszłych wydarzeń,
+- panel administratora pod `/admin`,
+- tworzenie, edycja, archiwizacja, przywracanie i usuwanie wydarzeń,
+- zarządzanie użytkownikami, rolami i aktywnością kont,
+- filtrowanie i sortowanie tabel w widoku użytkownika i administratora,
+- ochrona backendowa reguł biznesowych, w tym limitów miejsc i ról.
 
-Strona użytkownika jest pod `http://localhost:3000`, a panel administracyjny pod `http://localhost:3000/admin`.
+## Start lokalny
 
-Pierwszego administratora utwórz w Supabase Auth, a następnie dodaj dla niego rekord w `profiles` z rolą `admin`.
-W panelu administratora na pasku sesji widać imię i nazwisko, przycisk `Wyloguj` oraz link do przejścia na widok użytkownika bez wylogowania.
-Przycisk `Usuń trwale` dla wydarzeń pojawia się tylko przy zarchiwizowanych wydarzeniach bez zapisów.
-Przycisk `Rezygnuj` w sekcji „Moje zapisy” pojawia się tylko dla przyszłych wydarzeń i jest kontrolowany przez backend.
-Lista użytkowników w panelu administratora może być filtrowana i sortowana po imieniu i nazwisku, e-mailu, roli oraz statusie.
+1. Skopiuj `.env.example` do `.env` i uzupełnij dane Supabase.
+2. Wykonaj `supabase/schema.sql` w SQL Editorze Supabase.
+3. Jeśli używasz istniejącej bazy, uruchom też migracje z `supabase/migrations/`.
+4. Zainstaluj zależności:
 
-## Dane demonstracyjne
+```bash
+npm install
+```
 
-Mechanizm seedowania tworzy wyłącznie syntetyczne rekordy oznaczone prefiksem `[TEST]`. Nie uruchamiaj go dla środowiska produkcyjnego.
+5. Uruchom aplikację:
 
-W lokalnym `.env` ustaw `ALLOW_SEED=true` oraz hasło testowe w `SEED_TEST_PASSWORD` (minimum 10 znaków), a następnie uruchom `npm run seed`. Skrypt pokaże plan i wymaga wpisania `SEED` przed zapisem do bazy.
+```bash
+npm run dev
+```
 
-Usunięcie wyłącznie danych `[TEST]` wykonuje `npm run seed:cleanup`; wymaga ono wpisania `CLEANUP`. Nie dodawaj tych wartości do `.env.example` ani repozytorium.
+Adresy lokalne:
+
+- użytkownik: `http://localhost:3000`
+- administrator: `http://localhost:3000/admin`
+- ustawianie hasła: `http://localhost:3000/set-password`
+
+## Testy
+
+```bash
+npm test
+```
+
+## Konfiguracja środowiska
+
+W `.env` używane są:
+
+- `PORT`
+- `APP_URL`
+- `ADMIN_PATH`
+- `SUPABASE_URL`
+- `SUPABASE_PUBLISHABLE_KEY`
+- `SUPABASE_SECRET_KEY`
+- `EVENT_CAPACITY`
+- `NODE_ENV`
+
+Plik `.env.example` zawiera aktualny zestaw wymaganych zmiennych.
+
+## Dokumentacja
+
+- [Specyfikacja rozwiązania](docs/SPECYFIKACJA.md)
+- [Wdrożenie i hosting](docs/HOSTING.md)
+- [Archiwum dokumentów](docs/ARCHIVE.md)
+

@@ -1,6 +1,8 @@
 const collator = new Intl.Collator('pl', { sensitivity: 'base', numeric: true });
 
 const normalizeText = (value) => String(value ?? '').trim().toLocaleLowerCase('pl-PL');
+const normalizeNumberText = (value) => String(value ?? '').trim();
+const matchesNumberFilter = (value, filter) => normalizeNumberText(value) === normalizeNumberText(filter);
 
 const sortValue = (registration, sortBy) => {
   if (sortBy === 'eventDatetime') return Date.parse(registration.eventDatetime ?? '') || 0;

@@ -287,12 +287,15 @@ eventsTable.addEventListener('click', async (event) => {
   }
   if (!registerButton || registerButton.disabled) return;
   try {
+    registerButton.disabled = true;
     await api(`/api/events/${registerButton.dataset.registerId}/register`, { method: 'POST' });
     message('Zapisano na wydarzenie.');
     refresh();
   } catch (error) {
     if ([401, 403].includes(error.status)) resetPrivateView();
     message(error.message, true);
+  } finally {
+    if (registerButton.isConnected) registerButton.disabled = false;
   }
 });
 
@@ -306,12 +309,15 @@ mineTable.addEventListener('click', async (event) => {
   }
   if (!cancelButton || cancelButton.disabled) return;
   try {
+    cancelButton.disabled = true;
     await api(`/api/me/registrations/${cancelButton.dataset.cancelId}`, { method: 'DELETE' });
     message('Rezygnacja została zapisana.');
     refresh();
   } catch (error) {
     if ([401, 403].includes(error.status)) resetPrivateView();
     message(error.message, true);
+  } finally {
+    if (cancelButton.isConnected) cancelButton.disabled = false;
   }
 });
 

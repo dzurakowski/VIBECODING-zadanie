@@ -50,6 +50,24 @@ test('filtruje bieżące wydarzenia po wszystkich kolumnach danych', () => {
   assert.deepEqual(filtered, [events[0]]);
 });
 
+test('nie traktuje dopasowania fragmentu liczby jako zgodnego filtra', () => {
+  const filtered = filterAndSortCurrentEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '1',
+      remainingSeats: '',
+      status: '',
+      isRegistered: ''
+    }
+  });
+
+  assert.deepEqual(filtered, []);
+});
+
 test('sortuje bieżące wydarzenia po dacie i statusie zapisu', () => {
   assert.deepEqual(sortCurrentEvents(events, 'eventDatetime', 'asc').map((event) => event.name), [
     'Warsztat',

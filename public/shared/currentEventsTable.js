@@ -1,6 +1,8 @@
 const collator = new Intl.Collator('pl', { sensitivity: 'base', numeric: true });
 
 const normalizeText = (value) => String(value ?? '').trim().toLocaleLowerCase('pl-PL');
+const normalizeNumberText = (value) => String(value ?? '').trim();
+const matchesNumberFilter = (value, filter) => normalizeNumberText(value) === normalizeNumberText(filter);
 
 const sortValue = (event, sortBy) => {
   if (sortBy === 'eventDatetime') return Date.parse(event.eventDatetime ?? '') || 0;
@@ -30,8 +32,8 @@ export const filterCurrentEvents = (events, filters = defaultCurrentEventsState.
   if (filters.name && !normalizeText(event.name).includes(normalizeText(filters.name))) return false;
   if (filters.description && !normalizeText(event.description).includes(normalizeText(filters.description))) return false;
   if (filters.eventDatetime && !normalizeText(event.eventDatetimeDisplay ?? event.eventDatetime).includes(normalizeText(filters.eventDatetime))) return false;
-  if (filters.capacity && !normalizeText(event.capacity).includes(normalizeText(filters.capacity))) return false;
-  if (filters.remainingSeats && !normalizeText(event.remainingSeats).includes(normalizeText(filters.remainingSeats))) return false;
+  if (filters.capacity && !matchesNumberFilter(event.capacity, filters.capacity)) return false;
+  if (filters.remainingSeats && !matchesNumberFilter(event.remainingSeats, filters.remainingSeats)) return false;
   if (filters.status && event.status !== filters.status) return false;
   if (filters.isRegistered === 'yes' && !event.isRegistered) return false;
   if (filters.isRegistered === 'no' && event.isRegistered) return false;

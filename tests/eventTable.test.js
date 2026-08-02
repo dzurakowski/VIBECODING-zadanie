@@ -57,6 +57,25 @@ test('filtruje wydarzenia po wszystkich kolumnach danych', () => {
   assert.deepEqual(filtered, [events[2]]);
 });
 
+test('nie dopasowuje częściowych wartości liczbowych', () => {
+  const filtered = filterAndSortEvents(events, {
+    sortBy: 'eventDatetime',
+    sortDirection: 'asc',
+    filters: {
+      name: '',
+      description: '',
+      eventDatetime: '',
+      capacity: '1',
+      registeredCount: '',
+      remainingSeats: '',
+      status: '',
+      participants: ''
+    }
+  });
+
+  assert.deepEqual(filtered, []);
+});
+
 test('sortuje wydarzenia po dacie i pojemności', () => {
   assert.deepEqual(sortEvents(events, 'eventDatetime', 'asc').map((event) => event.name), [
     'Warsztat',

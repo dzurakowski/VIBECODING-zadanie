@@ -172,6 +172,7 @@ usersTable.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-user-action]');
   if (!button) return;
   try {
+    button.disabled = true;
     const action = button.dataset.userAction;
     if (action === 'delete') {
       if (!confirm('Trwale usunąć konto i powiązane zapisy?')) return;
@@ -184,6 +185,8 @@ usersTable.addEventListener('click', async (event) => {
   } catch (error) {
     if ([401, 403].includes(error.status)) resetAdminView();
     message(error.message, true);
+  } finally {
+    if (button.isConnected) button.disabled = false;
   }
 });
 
@@ -197,6 +200,7 @@ eventsTable.addEventListener('click', async (event) => {
   }
   if (!button) return;
   try {
+    button.disabled = true;
     if (button.dataset.action === 'status') {
       await api(`/api/admin/events/${button.dataset.id}/${button.dataset.status === 'current' ? 'archive' : 'restore'}`, { method: 'POST' });
     }
@@ -213,6 +217,8 @@ eventsTable.addEventListener('click', async (event) => {
   } catch (error) {
     if ([401, 403].includes(error.status)) resetAdminView();
     message(error.message, true);
+  } finally {
+    if (button.isConnected) button.disabled = false;
   }
 });
 

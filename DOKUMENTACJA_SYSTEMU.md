@@ -10,7 +10,7 @@
 
 ## Logowanie i hasła
 
-System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, a zalogowany administrator może przełączać się między widokiem użytkownika i panelem `/admin` bez wylogowania.
+System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, a zalogowany administrator widzi na pasku sesji imię i nazwisko, przycisk `Wyloguj` oraz link do przełączenia między widokiem użytkownika i panelem `/admin` bez wylogowania.
 
 Na ekranie logowania użytkownika może być dostępna opcja samodzielnej rejestracji. Administrator steruje jej widocznością przełącznikiem w zakładce **Użytkownicy**. Gdy rejestracja jest włączona, nowy użytkownik podaje imię i nazwisko oraz e-mail, a system wysyła standardowy e-mail Supabase prowadzący do ustawienia hasła.
 Jeżeli utworzenie profilu po stronie `profiles` się nie powiedzie, backend czyści wcześniej utworzone konto Auth, żeby nie pozostawić osieroconego użytkownika bez profilu.

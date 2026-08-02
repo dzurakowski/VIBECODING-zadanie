@@ -1,4 +1,5 @@
 import { defaultPrivateTab, isPrivateTab, normalizePrivateTab } from './shared/privateTabs.js';
+import { createSessionBarMarkup } from './shared/sessionBar.js';
 
 const tokenKey = 'events_access_token';
 const notice = document.querySelector('#notice');
@@ -109,7 +110,7 @@ async function refresh() {
 
     const { user } = await api('/api/auth/me');
 
-    session.innerHTML = `${user.fullName} <button class="secondary" id="logout">Wyloguj</button>`;
+    session.innerHTML = createSessionBarMarkup(user.fullName);
     document.querySelector('#logout').onclick = () => {
       localStorage.removeItem(tokenKey);
       location.reload();

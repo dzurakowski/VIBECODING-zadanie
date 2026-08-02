@@ -31,6 +31,29 @@ header .container {
   gap: 12px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.session-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.session-name {
+  font-weight: 600;
+}
+
+.session-bar .logout {
+  margin-left: auto;
+}
+
 h1 {
   font-size: 1.4rem;
   margin: 0;

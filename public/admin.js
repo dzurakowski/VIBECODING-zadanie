@@ -1,7 +1,9 @@
 import { defaultUserTableState, filterAndSortUsers, getUserStatusLabel } from './shared/userTable.js';
+import { createSessionBarMarkup } from './shared/sessionBar.js';
 
 const key = 'events_access_token';
 const notice = document.querySelector('#notice');
+const session = document.querySelector('#session');
 const registrationToggle = document.querySelector('#registration-toggle');
 const usersFiltersForm = document.querySelector('#users-filters');
 const usersFiltersReset = document.querySelector('#users-filters-reset');
@@ -114,6 +116,7 @@ usersFiltersForm.addEventListener('submit', (event) => {
 
 const resetAdminView = () => {
   localStorage.removeItem(key);
+  session.textContent = '';
   document.querySelector('#dashboard').classList.add('hidden');
   document.querySelector('#login').classList.remove('hidden');
   document.querySelector('#events').textContent = '';
@@ -158,6 +161,11 @@ async function refresh() {
     clearError();
     document.querySelector('#login').classList.add('hidden');
     document.querySelector('#dashboard').classList.remove('hidden');
+    session.innerHTML = createSessionBarMarkup(user.fullName, { showSwitchLink: true });
+    document.querySelector('#logout').onclick = () => {
+      localStorage.removeItem(key);
+      location.reload();
+    };
 
     const [{ events }, { users }, { enabled }] = await Promise.all([
       api('/api/admin/events'),

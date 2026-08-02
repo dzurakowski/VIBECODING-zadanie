@@ -6,7 +6,11 @@ export const createUsersRepository = (db) => ({
     const { data, error } = await db.auth.admin.inviteUserByEmail(email, { data: { full_name: fullName }, redirectTo });
     if (error) throw error;
     const { error: profileError } = await db.from('profiles').insert({ id: data.user.id, email, full_name: fullName, role, is_active: true });
-    if (profileError) throw profileError;
+    if (profileError) {
+      const { error: cleanupError } = await db.auth.admin.deleteUser(data.user.id);
+      if (cleanupError) throw cleanupError;
+      throw profileError;
+    }
     return data.user;
   },
   async setActive(id, active) {

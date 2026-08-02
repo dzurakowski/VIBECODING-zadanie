@@ -4,6 +4,7 @@
 
 - `user` widzi bieżące wydarzenia, zapisuje się na nie i zarządza własnym hasłem.
 - `user` może zrezygnować z przyszłego wydarzenia z poziomu sekcji „Moje zapisy”.
+- Możliwość rezygnacji jest wyznaczana przez backendowe pole `canCancel`, a nie przez zegar przeglądarki.
 - `admin` zarządza wydarzeniami oraz użytkownikami w panelu `/admin`.
 - Każde żądanie administracyjne jest weryfikowane przez backend na podstawie tokenu Supabase i roli z `profiles`.
 
@@ -12,6 +13,7 @@
 System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, a zalogowany administrator może przełączać się między widokiem użytkownika i panelem `/admin` bez wylogowania.
 
 Na ekranie logowania użytkownika może być dostępna opcja samodzielnej rejestracji. Administrator steruje jej widocznością przełącznikiem w zakładce **Użytkownicy**. Gdy rejestracja jest włączona, nowy użytkownik podaje imię i nazwisko oraz e-mail, a system wysyła standardowy e-mail Supabase prowadzący do ustawienia hasła.
+Jeżeli utworzenie profilu po stronie `profiles` się nie powiedzie, backend czyści wcześniej utworzone konto Auth, żeby nie pozostawić osieroconego użytkownika bez profilu.
 
 Nowy użytkownik jest zapraszany przez administratora. Otrzymuje e-mail Supabase i sam ustawia pierwsze hasło na `/set-password`.
 

@@ -13,6 +13,22 @@ test('zwraca utworzony zapis', async () => {
   assert.deepEqual(await service.register('event', 'user'), { id: 'reg', eventId: 'event', userId: 'user' });
 });
 
+test('oznacza przyszłe zapisy jako możliwe do anulowania', async () => {
+  const service = createRegistrationsService({
+    mine: async () => ([{ id: 'reg', event_id: 'event', events: { name: 'Soon', event_datetime: '2026-08-03T10:00:00.000Z', status: 'current' } }]),
+    removeOwn: async () => ({ id: 'reg' })
+  }, () => new Date('2026-08-02T10:00:00.000Z'));
+
+  assert.deepEqual(await service.mine('user'), [{
+    registrationId: 'reg',
+    eventId: 'event',
+    eventName: 'Soon',
+    eventDatetime: '2026-08-03T10:00:00.000Z',
+    status: 'current',
+    canCancel: true
+  }]);
+});
+
 test('pozwala zrezygnować z przyszłego wydarzenia', async () => {
   let removed = false;
   const service = createRegistrationsService({

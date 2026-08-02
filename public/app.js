@@ -46,7 +46,6 @@ const message = (text, error = false) => {
 };
 
 const format = (date) => new Intl.DateTimeFormat('pl-PL', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date));
-const isFuture = (date) => new Date(date).getTime() > Date.now();
 
 const renderTabs = (activeTab) => {
   const normalizedTab = normalizePrivateTab(activeTab);
@@ -138,7 +137,7 @@ async function refresh() {
 
     const { registrations } = await api('/api/me/registrations');
     document.querySelector('#mine').innerHTML = registrations.length
-      ? registrations.map((registration) => `<article class="card"><h3>${registration.eventName}</h3><p class="meta">${format(registration.eventDatetime)}</p>${isFuture(registration.eventDatetime) ? `<div class="actions"><button class="secondary" data-cancel-id="${registration.eventId}">Rezygnuj</button></div>` : ''}</article>`).join('')
+      ? registrations.map((registration) => `<article class="card"><h3>${registration.eventName}</h3><p class="meta">${format(registration.eventDatetime)}</p>${registration.canCancel ? `<div class="actions"><button class="secondary" data-cancel-id="${registration.eventId}">Rezygnuj</button></div>` : ''}</article>`).join('')
       : '<p>Nie masz jeszcze zapisów.</p>';
 
     document.querySelectorAll('[data-cancel-id]').forEach((button) => {

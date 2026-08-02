@@ -46,6 +46,7 @@ const message = (text, error = false) => {
 };
 
 const format = (date) => new Intl.DateTimeFormat('pl-PL', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(date));
+const isFuture = (date) => new Date(date).getTime() > Date.now();
 
 const renderTabs = (activeTab) => {
   const normalizedTab = normalizePrivateTab(activeTab);
@@ -108,10 +109,6 @@ async function refresh() {
     }
 
     const { user } = await api('/api/auth/me');
-    if (user.role === 'admin') {
-      window.location.replace('/admin');
-      return;
-    }
 
     session.innerHTML = `${user.fullName} <button class="secondary" id="logout">Wyloguj</button>`;
     document.querySelector('#logout').onclick = () => {
@@ -141,8 +138,21 @@ async function refresh() {
 
     const { registrations } = await api('/api/me/registrations');
     document.querySelector('#mine').innerHTML = registrations.length
-      ? registrations.map((registration) => `<article class="card"><h3>${registration.eventName}</h3><p class="meta">${format(registration.eventDatetime)}</p></article>`).join('')
+      ? registrations.map((registration) => `<article class="card"><h3>${registration.eventName}</h3><p class="meta">${format(registration.eventDatetime)}</p>${isFuture(registration.eventDatetime) ? `<div class="actions"><button class="secondary" data-cancel-id="${registration.eventId}">Rezygnuj</button></div>` : ''}</article>`).join('')
       : '<p>Nie masz jeszcze zapisów.</p>';
+
+    document.querySelectorAll('[data-cancel-id]').forEach((button) => {
+      button.onclick = async () => {
+        try {
+          await api(`/api/me/registrations/${button.dataset.cancelId}`, { method: 'DELETE' });
+          message('Rezygnacja została zapisana.');
+          refresh();
+        } catch (error) {
+          if ([401, 403].includes(error.status)) resetPrivateView();
+          message(error.message, true);
+        }
+      };
+    });
   } catch (error) {
     if (token()) resetPrivateView();
     message(error.message, true);

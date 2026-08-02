@@ -3,12 +3,13 @@
 ## Role i dostęp
 
 - `user` widzi bieżące wydarzenia, zapisuje się na nie i zarządza własnym hasłem.
+- `user` może zrezygnować z przyszłego wydarzenia z poziomu sekcji „Moje zapisy”.
 - `admin` zarządza wydarzeniami oraz użytkownikami w panelu `/admin`.
 - Każde żądanie administracyjne jest weryfikowane przez backend na podstawie tokenu Supabase i roli z `profiles`.
 
 ## Logowanie i hasła
 
-System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, która po sprawdzeniu roli automatycznie przekierowuje do `/admin`.
+System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, a zalogowany administrator może przełączać się między widokiem użytkownika i panelem `/admin` bez wylogowania.
 
 Na ekranie logowania użytkownika może być dostępna opcja samodzielnej rejestracji. Administrator steruje jej widocznością przełącznikiem w zakładce **Użytkownicy**. Gdy rejestracja jest włączona, nowy użytkownik podaje imię i nazwisko oraz e-mail, a system wysyła standardowy e-mail Supabase prowadzący do ustawienia hasła.
 
@@ -26,7 +27,6 @@ W środowisku produkcyjnym należy skonfigurować własny SMTP w Supabase. Domy�
 Panel ma trzy zakładki:
 
 - **Wydarzenia** — tworzenie wydarzeń, lista uczestników pod kartą, archiwizacja/przywracanie, reset zapisów i trwałe usunięcie.
-- **Użytkownicy** — wysyłanie zaproszeń, podgląd ról i statusów, dezaktywacja/przywracanie oraz trwałe usunięcie.
 - **Użytkownicy** — przełącznik włączający i wyłączający samodzielną rejestrację, wysyłanie zaproszeń, podgląd ról i statusów, dezaktywacja/przywracanie oraz trwałe usunięcie.
 - **Moje konto** — zmiana hasła aktualnego administratora.
 
@@ -53,6 +53,7 @@ Konto można dezaktywować bez utraty historii. Trwałe usunięcie konta usuwa k
 - `POST /api/auth/register`
 - `POST /api/auth/change-password` — wymaga aktualnego hasła i sesji.
 - `POST /api/auth/set-password` — dla sesji z zaproszenia lub odzyskiwania hasła.
+- `DELETE /api/me/registrations/:eventId` — usuwa własny zapis tylko dla przyszłych wydarzeń.
 
 ### Administrator
 

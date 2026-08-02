@@ -10,6 +10,8 @@
 
 System obsługuje e-mail + hasło oraz magic link dla obu ról. Magic link administratora wraca na stronę główną, która po sprawdzeniu roli automatycznie przekierowuje do `/admin`.
 
+Na ekranie logowania użytkownika może być dostępna opcja samodzielnej rejestracji. Administrator steruje jej widocznością przełącznikiem w zakładce **Użytkownicy**. Gdy rejestracja jest włączona, nowy użytkownik podaje imię i nazwisko oraz e-mail, a system wysyła standardowy e-mail Supabase prowadzący do ustawienia hasła.
+
 Nowy użytkownik jest zapraszany przez administratora. Otrzymuje e-mail Supabase i sam ustawia pierwsze hasło na `/set-password`.
 
 - Hasło musi mieć co najmniej 10 znaków.
@@ -25,6 +27,7 @@ Panel ma trzy zakładki:
 
 - **Wydarzenia** — tworzenie wydarzeń, lista uczestników pod kartą, archiwizacja/przywracanie, reset zapisów i trwałe usunięcie.
 - **Użytkownicy** — wysyłanie zaproszeń, podgląd ról i statusów, dezaktywacja/przywracanie oraz trwałe usunięcie.
+- **Użytkownicy** — przełącznik włączający i wyłączający samodzielną rejestrację, wysyłanie zaproszeń, podgląd ról i statusów, dezaktywacja/przywracanie oraz trwałe usunięcie.
 - **Moje konto** — zmiana hasła aktualnego administratora.
 
 Wydarzenie można trwale usunąć wyłącznie, gdy jest zarchiwizowane i nie ma zapisów. Przed usunięciem zapisów administrator używa akcji resetu.
@@ -35,9 +38,10 @@ Konto można dezaktywować bez utraty historii. Trwałe usunięcie konta usuwa k
 
 1. Wykonaj [supabase/schema.sql](supabase/schema.sql) dla nowej bazy.
 2. Dla istniejącej bazy, na której schemat uruchomiono przed dodaniem zarządzania kontami, wykonaj [migrację użytkowników](supabase/migrations/20260728_user_management.sql) w SQL Editorze.
-3. Ustaw `APP_URL` na adres aplikacji. Dla pracy lokalnej jest to `http://localhost:3000`.
-4. W Supabase Auth włącz e-mail oraz magic link, a publiczne zakładanie kont pozostaw wyłączone.
-5. W pliku `.env` przechowuj wyłącznie lokalnie `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` i `SUPABASE_SECRET_KEY`.
+3. Dla istniejącej bazy po dodaniu sterowania rejestracją wykonaj [migrację ustawień rejestracji](supabase/migrations/20260802_registration_settings.sql).
+4. Ustaw `APP_URL` na adres aplikacji. Dla pracy lokalnej jest to `http://localhost:3000`.
+5. W Supabase Auth włącz e-mail oraz magic link. Publiczne zakładanie kont możesz pozostawić według potrzeb, bo aplikacja steruje widocznością rejestracji po swojej stronie.
+6. W pliku `.env` przechowuj wyłącznie lokalnie `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` i `SUPABASE_SECRET_KEY`.
 
 ## Rozszerzone API
 
@@ -45,12 +49,16 @@ Konto można dezaktywować bez utraty historii. Trwałe usunięcie konta usuwa k
 
 - `POST /api/auth/magic-link`
 - `POST /api/auth/password-reset`
+- `GET /api/auth/registration-status`
+- `POST /api/auth/register`
 - `POST /api/auth/change-password` — wymaga aktualnego hasła i sesji.
 - `POST /api/auth/set-password` — dla sesji z zaproszenia lub odzyskiwania hasła.
 
 ### Administrator
 
 - `POST /api/admin/users` — wysyła zaproszenie zamiast przekazywać hasło administratorowi.
+- `GET /api/admin/registration-settings`
+- `PATCH /api/admin/registration-settings`
 - `POST /api/admin/users/:userId/deactivate`
 - `POST /api/admin/users/:userId/restore`
 - `DELETE /api/admin/users/:userId`

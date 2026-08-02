@@ -110,6 +110,22 @@ label {
   font-size: .9rem;
 }
 
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.checkbox input {
+  width: auto;
+  margin: 0;
+}
+
+.settings-toggle {
+  margin: 8px 0 12px;
+}
+
 .notice {
   margin: 18px 0;
   padding: 12px;

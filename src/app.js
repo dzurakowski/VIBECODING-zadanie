@@ -2,10 +2,12 @@ import { createAuth } from './infrastructure/auth.js';
 import { supabase, serviceSupabase } from './infrastructure/supabaseClient.js';
 import { createEventsRepository } from './repositories/eventsRepository.js';
 import { createRegistrationsRepository } from './repositories/registrationsRepository.js';
+import { createSettingsRepository } from './repositories/settingsRepository.js';
 import { createUsersRepository } from './repositories/usersRepository.js';
 import { createAuthService } from './services/authService.js';
 import { createEventsService } from './services/eventsService.js';
 import { createRegistrationsService } from './services/registrationsService.js';
+import { createSettingsService } from './services/settingsService.js';
 import { createUsersService } from './services/usersService.js';
 import { config } from './config.js';
 import { assertUuid } from './utils/validation.js';
@@ -13,11 +15,13 @@ import { handleError, readJson, sendJson } from './utils/http.js';
 
 export const createApp = () => {
   const usersRepo = createUsersRepository(serviceSupabase);
+  const settingsRepo = createSettingsRepository(serviceSupabase);
   const events = createEventsService(createEventsRepository(serviceSupabase), config.eventCapacity);
   const registrations = createRegistrationsService(createRegistrationsRepository(serviceSupabase));
+  const settings = createSettingsService(settingsRepo);
   const users = createUsersService(usersRepo, config.appUrl);
   const auth = createAuth({ authClient: supabase, usersRepository: usersRepo });
-  const authService = createAuthService(supabase, serviceSupabase, usersRepo, config.appUrl);
+  const authService = createAuthService(supabase, serviceSupabase, usersRepo, settings, config.appUrl);
 
   return async (request, response, pathname) => {
     try {
@@ -27,6 +31,8 @@ export const createApp = () => {
       if (request.method === 'POST' && pathname === '/api/auth/login') { result = await authService.login(body); return sendJson(response, 200, { message: 'Zalogowano.', ...result }); }
       if (request.method === 'POST' && pathname === '/api/auth/magic-link') { await authService.magicLink(body); return sendJson(response, 200, { message: 'Link logowania został wysłany.' }); }
       if (request.method === 'POST' && pathname === '/api/auth/password-reset') { await authService.requestPasswordReset(body); return sendJson(response, 200, { message: 'Jeżeli konto istnieje, wysłaliśmy link do ustawienia nowego hasła.' }); }
+      if (request.method === 'GET' && pathname === '/api/auth/registration-status') { return sendJson(response, 200, await authService.registrationStatus()); }
+      if (request.method === 'POST' && pathname === '/api/auth/register') { result = await authService.register(body); return sendJson(response, 201, { message: 'Rejestracja została zakończona. Sprawdź e-mail, aby ustawić hasło.', ...result }); }
       if (request.method === 'POST' && pathname === '/api/auth/logout') { await authService.logout(request.headers.authorization?.slice(7)); return sendJson(response, 200, { message: 'Wylogowano.' }); }
       if (request.method === 'GET' && pathname === '/api/auth/me') { return sendJson(response, 200, { user: await authService.me(await auth.current(request)) }); }
       if (request.method === 'POST' && pathname === '/api/auth/change-password') { const user = await auth.current(request); await authService.changePassword(user, body, true); return sendJson(response, 200, { message: 'Hasło zostało zmienione.' }); }
@@ -49,6 +55,8 @@ export const createApp = () => {
       if (request.method === 'PATCH' && (result = match(/^\/api\/admin\/users\/([^/]+)$/))) return sendJson(response, 200, { message: 'Zaktualizowano użytkownika.', user: await users.update(assertUuid(result[1], 'Identyfikator użytkownika'), body) });
       if (request.method === 'POST' && (result = match(/^\/api\/admin\/users\/([^/]+)\/(deactivate|restore)$/))) { await users.setActive(assertUuid(result[1], 'Identyfikator użytkownika'), result[2] === 'restore', (await auth.current(request)).id); return sendJson(response, 200, { message: result[2] === 'restore' ? 'Przywrócono konto.' : 'Dezaktywowano konto.' }); }
       if (request.method === 'DELETE' && (result = match(/^\/api\/admin\/users\/([^/]+)$/))) { await users.remove(assertUuid(result[1], 'Identyfikator użytkownika'), (await auth.current(request)).id); return sendJson(response, 200, { message: 'Usunięto konto.' }); }
+      if (request.method === 'GET' && pathname === '/api/admin/registration-settings') return sendJson(response, 200, { enabled: await settings.registrationStatus() });
+      if (request.method === 'PATCH' && pathname === '/api/admin/registration-settings') return sendJson(response, 200, { message: 'Zapisano ustawienie rejestracji.', enabled: await settings.setRegistrationEnabled(body.enabled) });
       if (request.method === 'DELETE' && (result = match(/^\/api\/admin\/registrations\/([^/]+)$/))) { await registrations.remove(assertUuid(result[1], 'Identyfikator zapisu')); return sendJson(response, 200, { message: 'Usunięto zapis.' }); }
       return sendJson(response, 404, { message: 'Nie znaleziono endpointu.' });
     } catch (error) { handleError(response, error); }

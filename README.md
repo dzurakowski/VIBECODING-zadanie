@@ -9,6 +9,7 @@ Szczegóły ról, logowania, odzyskiwania haseł i obsługi panelu opisuje [DOKU
 1. Skopiuj `.env.example` do `.env` i uzupełnij dane projektu Supabase.
 2. Uruchom [supabase/schema.sql](supabase/schema.sql) w SQL Editorze Supabase.
    Dla istniejącej bazy wykonaj także [supabase/migrations/20260728_user_management.sql](supabase/migrations/20260728_user_management.sql).
+   Przy zmianach związanych z rejestracją użytkowników uruchom też [supabase/migrations/20260802_registration_settings.sql](supabase/migrations/20260802_registration_settings.sql).
 3. Zainstaluj zależności: `npm install`.
 4. Uruchom aplikację: `npm run dev`.
 

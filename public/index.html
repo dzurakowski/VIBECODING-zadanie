@@ -24,6 +24,19 @@
           <button>Zaloguj</button>
           <button class="secondary" type="button" id="magic">Wyślij magic link</button>
           <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
+          <button class="secondary hidden" type="button" id="show-registration">Nie masz konta, zarejestruj się</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="registration-section" class="card hidden">
+      <h2>Rejestracja</h2>
+      <form id="registration-form">
+        <label>Imię i nazwisko<input name="fullName" required></label>
+        <label>E-mail<input name="email" type="email" required></label>
+        <div class="actions">
+          <button>Zarejestruj się</button>
+          <button class="secondary" type="button" id="back-to-login">Wróć do logowania</button>
         </div>
       </form>
     </section>

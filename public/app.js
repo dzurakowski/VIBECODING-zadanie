@@ -4,9 +4,14 @@ const tokenKey = 'events_access_token';
 const notice = document.querySelector('#notice');
 const session = document.querySelector('#session');
 const loginSection = document.querySelector('#login');
+const registrationSection = document.querySelector('#registration-section');
 const privateArea = document.querySelector('#private-area');
+const showRegistrationButton = document.querySelector('#show-registration');
+const backToLoginButton = document.querySelector('#back-to-login');
 const tabButtons = document.querySelectorAll('[data-tab]');
 const tabPanels = document.querySelectorAll('.tab-panel');
+const registrationForm = document.querySelector('#registration-form');
+let registrationEnabled = false;
 
 const callbackToken = new URLSearchParams(window.location.hash.slice(1)).get('access_token');
 if (callbackToken) {
@@ -55,19 +60,45 @@ const renderTabs = (activeTab) => {
 
 const renderPrivateDashboard = () => {
   loginSection.classList.add('hidden');
+  registrationSection.classList.add('hidden');
   privateArea.classList.remove('hidden');
   renderTabs(defaultPrivateTab);
+};
+
+const showLoginView = () => {
+  loginSection.classList.remove('hidden');
+  registrationSection.classList.add('hidden');
+};
+
+const showRegistrationView = () => {
+  loginSection.classList.add('hidden');
+  registrationSection.classList.remove('hidden');
+};
+
+const updateRegistrationAvailability = (enabled) => {
+  registrationEnabled = enabled;
+  showRegistrationButton.classList.toggle('hidden', !enabled);
+  if (!enabled) showLoginView();
 };
 
 const resetPrivateView = () => {
   localStorage.removeItem(tokenKey);
   session.textContent = '';
-  loginSection.classList.remove('hidden');
+  showLoginView();
   privateArea.classList.add('hidden');
   renderTabs(defaultPrivateTab);
   document.querySelector('#events').textContent = '';
   document.querySelector('#mine').textContent = '';
 };
+
+async function refreshRegistrationAvailability() {
+  try {
+    const { enabled } = await api('/api/auth/registration-status');
+    updateRegistrationAvailability(Boolean(enabled));
+  } catch {
+    updateRegistrationAvailability(false);
+  }
+}
 
 async function refresh() {
   try {
@@ -118,6 +149,14 @@ async function refresh() {
   }
 }
 
+showRegistrationButton.onclick = () => {
+  if (registrationEnabled) showRegistrationView();
+};
+
+backToLoginButton.onclick = () => {
+  showLoginView();
+};
+
 document.querySelectorAll('[data-tab]').forEach((button) => {
   button.onclick = () => {
     if (!isPrivateTab(button.dataset.tab)) return;
@@ -157,6 +196,19 @@ document.querySelector('#reset').onclick = async () => {
   }
 };
 
+registrationForm.onsubmit = async (event) => {
+  event.preventDefault();
+  try {
+    const data = Object.fromEntries(new FormData(event.target));
+    await api('/api/auth/register', { method: 'POST', body: JSON.stringify(data) });
+    event.target.reset();
+    showLoginView();
+    message('Rejestracja zakończona. Sprawdź e-mail, aby ustawić hasło.');
+  } catch (error) {
+    message(error.message, true);
+  }
+};
+
 document.querySelector('#password-form').onsubmit = async (event) => {
   event.preventDefault();
   try {
@@ -169,4 +221,5 @@ document.querySelector('#password-form').onsubmit = async (event) => {
   }
 };
 
+await refreshRegistrationAvailability();
 refresh();

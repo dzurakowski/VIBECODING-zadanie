@@ -6,5 +6,6 @@ export const assertEmail = (value) => { const email = typeof value === 'string' 
 export const assertText = (value, label) => { if (typeof value !== 'string' || !value.trim()) throw new HttpError(400, `${label} nie może być puste.`); return value.trim(); };
 export const assertCapacity = (value) => { if (!Number.isInteger(value) || value < 1) throw new HttpError(400, 'Pojemność musi być liczbą całkowitą większą od 0.'); return value; };
 export const assertDate = (value) => { if (typeof value !== 'string' || Number.isNaN(Date.parse(value))) throw new HttpError(400, 'Podaj poprawną datę wydarzenia.'); return value; };
+export const assertBoolean = (value, label = 'Wartość') => { if (typeof value !== 'boolean') throw new HttpError(400, `${label} musi mieć wartość true lub false.`); return value; };
 export const assertRole = (value) => { if (!['user', 'admin'].includes(value)) throw new HttpError(400, 'Rola musi mieć wartość user lub admin.'); return value; };
 export const assertStatus = (value) => { if (!['current', 'archived'].includes(value)) throw new HttpError(400, 'Status musi mieć wartość current lub archived.'); return value; };

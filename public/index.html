@@ -49,9 +49,54 @@
 
       <section id="events-tab" class="tab-panel active">
         <h2>Bieżące wydarzenia</h2>
-        <div id="events" class="grid"></div>
+        <form id="events-filters" class="table-tools">
+          <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
+          <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
+          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+          <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
+          <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
+          <label>Status
+            <select name="status">
+              <option value="">Wszystkie</option>
+              <option value="current">Bieżące</option>
+              <option value="archived">Archiwalne</option>
+            </select>
+          </label>
+          <label>Zapis
+            <select name="isRegistered">
+              <option value="">Wszystkie</option>
+              <option value="yes">Zapisane</option>
+              <option value="no">Niezapisane</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
+          </div>
+        </form>
+        <div id="events" class="table-wrap"></div>
         <h2>Moje zapisy</h2>
-        <div id="mine" class="grid"></div>
+        <form id="mine-filters" class="table-tools">
+          <label>Wydarzenie<input name="eventName" type="text" placeholder="Filtruj po wydarzeniu"></label>
+          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+          <label>Status
+            <select name="status">
+              <option value="">Wszystkie</option>
+              <option value="current">Bieżące</option>
+              <option value="archived">Archiwalne</option>
+            </select>
+          </label>
+          <label>Rezygnacja
+            <select name="canCancel">
+              <option value="">Wszystkie</option>
+              <option value="yes">Możliwa</option>
+              <option value="no">Niedostępna</option>
+            </select>
+          </label>
+          <div class="actions">
+            <button class="secondary" type="reset" id="mine-filters-reset">Wyczyść filtry</button>
+          </div>
+        </form>
+        <div id="mine" class="table-wrap"></div>
       </section>
 
       <section id="password-tab" class="tab-panel">

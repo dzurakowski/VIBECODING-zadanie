@@ -8,9 +8,6 @@
   <style>
     .tabs{display:flex;gap:8px;margin:24px 0}
     .tabs button.active{background:#172033}
-    .participants{margin:0 0 16px;padding-left:20px}
-    .participants li{margin:5px 0}
-    .participants span{color:#526071;font-size:.9rem}
     .tab-panel{display:none}
     .tab-panel.active{display:block}
   </style>
@@ -56,7 +53,26 @@
           <button>Utwórz wydarzenie</button>
         </form>
         <h2>Wydarzenia</h2>
-        <div id="events" class="grid"></div>
+        <form id="events-filters" class="table-tools">
+          <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
+          <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
+          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+          <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
+          <label>Zajęte<input name="registeredCount" type="text" placeholder="Filtruj po zapisach"></label>
+          <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
+          <label>Status
+            <select name="status">
+              <option value="">Wszystkie</option>
+              <option value="current">Bieżące</option>
+              <option value="archived">Archiwalne</option>
+            </select>
+          </label>
+          <label>Uczestnicy<input name="participants" type="text" placeholder="Filtruj po uczestnikach"></label>
+          <div class="actions">
+            <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
+          </div>
+        </form>
+        <div id="events" class="table-wrap"></div>
       </section>
 
       <section id="users-tab" class="tab-panel">

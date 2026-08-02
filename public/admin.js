@@ -1,19 +1,40 @@
+import { defaultEventTableState, filterAndSortEvents, getEventStatusLabel } from './shared/eventTable.js';
 import { defaultUserTableState, filterAndSortUsers, getUserStatusLabel } from './shared/userTable.js';
 import { createSessionBarMarkup } from './shared/sessionBar.js';
 
 const key = 'events_access_token';
 const notice = document.querySelector('#notice');
 const session = document.querySelector('#session');
+const eventsTable = document.querySelector('#events');
+const eventsFiltersForm = document.querySelector('#events-filters');
+const eventsFiltersReset = document.querySelector('#events-filters-reset');
 const registrationToggle = document.querySelector('#registration-toggle');
 const usersFiltersForm = document.querySelector('#users-filters');
 const usersFiltersReset = document.querySelector('#users-filters-reset');
 const usersTable = document.querySelector('#users');
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  '\'': '&#39;'
+}[character]));
+const formatDate = (value) => new Intl.DateTimeFormat('pl-PL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+const formatParticipants = (registrations) => registrations.length
+  ? registrations.map((registration) => `${registration.profiles.full_name} <${registration.profiles.email}>`).join(' | ')
+  : '';
+const eventFiltersState = {
+  sortBy: defaultEventTableState.sortBy,
+  sortDirection: defaultEventTableState.sortDirection,
+  filters: { ...defaultEventTableState.filters }
+};
 const usersState = {
   sortBy: defaultUserTableState.sortBy,
   sortDirection: defaultUserTableState.sortDirection,
   filters: { ...defaultUserTableState.filters }
 };
 let allUsers = [];
+let allEvents = [];
 
 const callbackToken = new URLSearchParams(window.location.hash.slice(1)).get('access_token');
 if (callbackToken) {
@@ -52,10 +73,21 @@ const clearError = () => {
   }
 };
 
-const date = (value) => new Date(value).toLocaleString('pl-PL');
+const renderEventSummary = (event, registrations) => ({
+  ...event,
+  eventDatetimeDisplay: formatDate(event.eventDatetime),
+  registeredCount: registrations.length,
+  remainingSeats: Math.max(0, event.capacity - registrations.length),
+  participantsText: formatParticipants(registrations),
+  participants: registrations
+});
 const sortIndicator = (field) => {
   if (usersState.sortBy !== field) return '↕';
   return usersState.sortDirection === 'asc' ? '↑' : '↓';
+};
+const eventSortIndicator = (field) => {
+  if (eventFiltersState.sortBy !== field) return '↕';
+  return eventFiltersState.sortDirection === 'asc' ? '↑' : '↓';
 };
 const toggleSort = (field) => {
   if (usersState.sortBy === field) {
@@ -65,10 +97,23 @@ const toggleSort = (field) => {
     usersState.sortDirection = 'asc';
   }
 };
+const toggleEventSort = (field) => {
+  if (eventFiltersState.sortBy === field) {
+    eventFiltersState.sortDirection = eventFiltersState.sortDirection === 'asc' ? 'desc' : 'asc';
+  } else {
+    eventFiltersState.sortBy = field;
+    eventFiltersState.sortDirection = 'asc';
+  }
+};
 const readFilters = () => Object.fromEntries(new FormData(usersFiltersForm));
+const readEventFilters = () => Object.fromEntries(new FormData(eventsFiltersForm));
 const syncFilters = () => {
   usersState.filters = readFilters();
   renderUsers();
+};
+const syncEventFilters = () => {
+  eventFiltersState.filters = readEventFilters();
+  renderEvents();
 };
 const renderUsers = () => {
   const users = filterAndSortUsers(allUsers, usersState);
@@ -91,6 +136,38 @@ const renderUsers = () => {
   });
 };
 
+const renderEvents = () => {
+  const events = filterAndSortEvents(allEvents, eventFiltersState);
+  eventsTable.innerHTML = events.length ? `<table>
+    <tr>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'name' ? 'active' : ''}" type="button" data-event-sort="name">Nazwa <span class="sort-indicator">${eventSortIndicator('name')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'description' ? 'active' : ''}" type="button" data-event-sort="description">Opis <span class="sort-indicator">${eventSortIndicator('description')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'eventDatetime' ? 'active' : ''}" type="button" data-event-sort="eventDatetime">Termin <span class="sort-indicator">${eventSortIndicator('eventDatetime')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'capacity' ? 'active' : ''}" type="button" data-event-sort="capacity">Pojemność <span class="sort-indicator">${eventSortIndicator('capacity')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'registeredCount' ? 'active' : ''}" type="button" data-event-sort="registeredCount">Zajęte <span class="sort-indicator">${eventSortIndicator('registeredCount')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'remainingSeats' ? 'active' : ''}" type="button" data-event-sort="remainingSeats">Wolne <span class="sort-indicator">${eventSortIndicator('remainingSeats')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'status' ? 'active' : ''}" type="button" data-event-sort="status">Status <span class="sort-indicator">${eventSortIndicator('status')}</span></button></th>
+      <th><button class="table-sort ${eventFiltersState.sortBy === 'participants' ? 'active' : ''}" type="button" data-event-sort="participants">Uczestnicy <span class="sort-indicator">${eventSortIndicator('participants')}</span></button></th>
+      <th>Akcja</th>
+    </tr>
+    ${events.map((event) => `<tr>
+      <td>${escapeHtml(event.name)}</td>
+      <td>${escapeHtml(event.description ?? '—')}</td>
+      <td>${escapeHtml(event.eventDatetimeDisplay)}</td>
+      <td>${escapeHtml(event.capacity)}</td>
+      <td>${escapeHtml(event.registeredCount)}</td>
+      <td>${escapeHtml(event.remainingSeats)}</td>
+      <td>${escapeHtml(getEventStatusLabel(event.status))}</td>
+      <td>${event.participants.length ? `<details class="event-participants"><summary>${event.participants.length} os.</summary><ul class="participants">${event.participants.map((registration) => `<li>${escapeHtml(registration.profiles.full_name)} <span>${escapeHtml(registration.profiles.email)}</span></li>`).join('')}</ul></details>` : '<span class="meta">Brak zapisanych użytkowników.</span>'}</td>
+      <td><div class="actions">
+        <button data-action="status" data-id="${event.id}" data-status="${event.status}">${event.status === 'current' ? 'Archiwizuj' : 'Przywróć'}</button>
+        <button class="danger" data-action="reset" data-id="${event.id}">Reset zapisów</button>
+        ${event.status === 'archived' && !event.participants.length ? `<button class="danger" data-action="delete" data-id="${event.id}">Usuń trwale</button>` : ''}
+      </div></td>
+    </tr>`).join('')}
+  </table>` : '<p>Brak wydarzeń.</p>';
+};
+
 usersTable.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-user-action]');
   if (!button) return;
@@ -101,6 +178,35 @@ usersTable.addEventListener('click', async (event) => {
       await api(`/api/admin/users/${button.dataset.id}`, { method: 'DELETE' });
     } else {
       await api(`/api/admin/users/${button.dataset.id}/${action}`, { method: 'POST' });
+    }
+    message('Zapisano zmianę.');
+    refresh();
+  } catch (error) {
+    if ([401, 403].includes(error.status)) resetAdminView();
+    message(error.message, true);
+  }
+});
+
+eventsTable.addEventListener('click', async (event) => {
+  const button = event.target.closest('[data-action]');
+  const sortButton = event.target.closest('[data-event-sort]');
+  if (sortButton) {
+    toggleEventSort(sortButton.dataset.eventSort);
+    renderEvents();
+    return;
+  }
+  if (!button) return;
+  try {
+    if (button.dataset.action === 'status') {
+      await api(`/api/admin/events/${button.dataset.id}/${button.dataset.status === 'current' ? 'archive' : 'restore'}`, { method: 'POST' });
+    }
+    if (button.dataset.action === 'reset') {
+      if (!confirm('Usunąć wszystkie zapisy?')) return;
+      await api(`/api/admin/events/${button.dataset.id}/reset`, { method: 'POST' });
+    }
+    if (button.dataset.action === 'delete') {
+      if (!confirm('Trwale usunąć to wydarzenie?')) return;
+      await api(`/api/admin/events/${button.dataset.id}`, { method: 'DELETE' });
     }
     message('Zapisano zmianę.');
     refresh();
@@ -121,10 +227,15 @@ const resetAdminView = () => {
   document.querySelector('#login').classList.remove('hidden');
   document.querySelector('#events').textContent = '';
   document.querySelector('#users').textContent = '';
+  eventsFiltersForm.reset();
   usersFiltersForm.reset();
+  eventFiltersState.sortBy = defaultEventTableState.sortBy;
+  eventFiltersState.sortDirection = defaultEventTableState.sortDirection;
+  eventFiltersState.filters = { ...defaultEventTableState.filters };
   usersState.sortBy = defaultUserTableState.sortBy;
   usersState.sortDirection = defaultUserTableState.sortDirection;
   usersState.filters = { ...defaultUserTableState.filters };
+  allEvents = [];
   allUsers = [];
   registrationToggle.checked = false;
   registrationToggle.disabled = true;
@@ -181,29 +292,8 @@ async function refresh() {
       event,
       registrations: (await api(`/api/admin/events/${event.id}/registrations`)).registrations
     })));
-
-    document.querySelector('#events').innerHTML = enriched.map(({ event, registrations }) => `<article class="card"><h3>${event.name}</h3><p class="meta">${date(event.eventDatetime)} · ${event.registeredCount}/${event.capacity} miejsc · ${event.status}</p><h4>Uczestnicy (${registrations.length})</h4>${registrations.length ? `<ul class="participants">${registrations.map((registration) => `<li>${registration.profiles.full_name} <span>${registration.profiles.email}</span></li>`).join('')}</ul>` : '<p class="meta">Brak zapisanych użytkowników.</p>'}<div class="actions"><button data-action="status" data-id="${event.id}" data-status="${event.status}">${event.status === 'current' ? 'Archiwizuj' : 'Przywróć'}</button><button class="danger" data-action="reset" data-id="${event.id}">Reset zapisów</button>${event.status === 'archived' && !registrations.length ? `<button class="danger" data-action="delete" data-id="${event.id}">Usuń trwale</button>` : ''}</div></article>`).join('') || '<p>Brak wydarzeń.</p>';
-
-    document.querySelectorAll('#events button').forEach((button) => {
-      button.onclick = async () => {
-        try {
-          if (button.dataset.action === 'status') await api(`/api/admin/events/${button.dataset.id}/${button.dataset.status === 'current' ? 'archive' : 'restore'}`, { method: 'POST' });
-          if (button.dataset.action === 'reset') {
-            if (!confirm('Usunąć wszystkie zapisy?')) return;
-            await api(`/api/admin/events/${button.dataset.id}/reset`, { method: 'POST' });
-          }
-          if (button.dataset.action === 'delete') {
-            if (!confirm('Trwale usunąć to wydarzenie?')) return;
-            await api(`/api/admin/events/${button.dataset.id}`, { method: 'DELETE' });
-          }
-          message('Zapisano zmianę.');
-          refresh();
-        } catch (error) {
-          if ([401, 403].includes(error.status)) resetAdminView();
-          message(error.message, true);
-        }
-      };
-    });
+    allEvents = enriched.map(({ event, registrations }) => renderEventSummary(event, registrations));
+    renderEvents();
 
   } catch (error) {
     resetAdminView();
@@ -219,6 +309,17 @@ usersFiltersForm.addEventListener('reset', () => {
     usersState.sortDirection = defaultUserTableState.sortDirection;
     usersState.filters = { ...defaultUserTableState.filters };
     renderUsers();
+  });
+});
+
+eventsFiltersForm.addEventListener('input', syncEventFilters);
+eventsFiltersForm.addEventListener('change', syncEventFilters);
+eventsFiltersForm.addEventListener('reset', () => {
+  queueMicrotask(() => {
+    eventFiltersState.sortBy = defaultEventTableState.sortBy;
+    eventFiltersState.sortDirection = defaultEventTableState.sortDirection;
+    eventFiltersState.filters = { ...defaultEventTableState.filters };
+    renderEvents();
   });
 });
 

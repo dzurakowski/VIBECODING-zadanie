@@ -5,129 +5,150 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Panel administratora</title>
   <link rel="stylesheet" href="/styles.css">
-  <style>
-    .tabs{display:flex;gap:8px;margin:24px 0}
-    .tabs button.active{background:#172033}
-    .tab-panel{display:none}
-    .tab-panel.active{display:block}
-  </style>
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>Panel administratora</h1>
-      <div class="header-actions">
-        <div id="session"></div>
-      </div>
-    </div>
-  </header>
-  <main class="container">
-    <div id="notice" class="notice hidden"></div>
-    <section id="login" class="card">
-      <h2>Logowanie administratora</h2>
-      <form id="login-form">
-        <label>E-mail<input name="email" type="email" required></label>
-        <label>Hasło<input name="password" type="password" required></label>
-        <div class="actions">
-          <button>Zaloguj</button>
-          <button class="secondary" type="button" id="magic">Wyślij magic link</button>
-          <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-dot"></span>Zapisy</div>
+      <div>
+        <div class="sidebar-label">Administracja</div>
+        <div class="tabs">
+          <button data-tab="events" class="active" type="button">Wydarzenia</button>
+          <button data-tab="users" type="button">Użytkownicy</button>
+          <button data-tab="account" type="button">Moje konto</button>
         </div>
-      </form>
-    </section>
-
-    <div id="dashboard" class="hidden">
-      <div class="tabs">
-        <button data-tab="events" class="active">Wydarzenia</button>
-        <button data-tab="users">Użytkownicy</button>
-        <button data-tab="account">Moje konto</button>
       </div>
+      <div class="sidebar-foot">
+        <div class="header-actions">
+          <div id="session"></div>
+        </div>
+      </div>
+    </aside>
 
-      <section id="events-tab" class="tab-panel active">
-        <h2>Nowe wydarzenie</h2>
-        <form id="event-form">
-          <label>Nazwa<input name="name" required></label>
-          <label>Opis<textarea name="description"></textarea></label>
-          <label>Termin<input name="eventDatetime" type="datetime-local" required></label>
-          <label>Pojemność<input name="capacity" type="number" min="1" value="12" required></label>
-          <button>Utwórz wydarzenie</button>
-        </form>
-        <h2>Wydarzenia</h2>
-        <form id="events-filters" class="table-tools">
-          <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
-          <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
-          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
-          <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
-          <label>Zajęte<input name="registeredCount" type="text" placeholder="Filtruj po zapisach"></label>
-          <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
-          <label>Status
-            <select name="status">
-              <option value="">Wszystkie</option>
-              <option value="current">Bieżące</option>
-              <option value="archived">Archiwalne</option>
-            </select>
-          </label>
-          <label>Uczestnicy<input name="participants" type="text" placeholder="Filtruj po uczestnikach"></label>
-          <div class="actions">
-            <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
-          </div>
-        </form>
-        <div id="events" class="table-wrap"></div>
-      </section>
+    <div class="content">
+      <header class="topbar">
+        <h1>Panel administratora</h1>
+      </header>
 
-      <section id="users-tab" class="tab-panel">
-        <h2>Rejestracja nowych użytkowników</h2>
-        <label class="checkbox settings-toggle">
-          <input id="registration-toggle" type="checkbox">
-          Pozwól nowym użytkownikom rejestrować się w systemie
-        </label>
-        <p class="meta">Gdy opcja jest włączona, na ekranie logowania widnieje możliwość samodzielnej rejestracji.</p>
+      <main class="container">
+        <div id="notice" class="notice hidden"></div>
 
-        <h2>Zaproś użytkownika</h2>
-        <p class="meta">Użytkownik otrzyma e-mail, w którym sam ustawi pierwsze hasło.</p>
-        <form id="user-form">
-          <label>E-mail<input name="email" type="email" required></label>
-          <label>Imię i nazwisko<input name="fullName" required></label>
-          <label>Rola<select name="role"><option value="user">Użytkownik</option><option value="admin">Administrator</option></select></label>
-          <button>Wyślij zaproszenie</button>
-        </form>
-        <h2>Wyszukiwanie i sortowanie</h2>
-        <form id="users-filters" class="table-tools">
-          <label>Imię i nazwisko<input name="fullName" type="text" placeholder="Filtruj po nazwisku"></label>
-          <label>E-mail<input name="email" type="text" placeholder="Filtruj po e-mailu"></label>
-          <label>Rola
-            <select name="role">
-              <option value="">Wszystkie</option>
-              <option value="user">Użytkownik</option>
-              <option value="admin">Administrator</option>
-            </select>
-          </label>
-          <label>Status
-            <select name="status">
-              <option value="">Wszystkie</option>
-              <option value="active">Aktywne</option>
-              <option value="inactive">Nieaktywne</option>
-            </select>
-          </label>
-          <div class="actions">
-            <button class="secondary" type="reset" id="users-filters-reset">Wyczyść filtry</button>
-          </div>
-        </form>
-        <h2>Użytkownicy</h2>
-        <div id="users"></div>
-      </section>
+        <section id="login" class="card">
+          <h2>Logowanie administratora</h2>
+          <form id="login-form">
+            <label>E-mail<input name="email" type="email" required></label>
+            <label>Hasło<input name="password" type="password" required></label>
+            <div class="actions">
+              <button>Zaloguj</button>
+              <button class="secondary" type="button" id="magic">Wyślij magic link</button>
+              <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
+            </div>
+          </form>
+        </section>
 
-      <section id="account-tab" class="tab-panel">
-        <h2>Zmień własne hasło</h2>
-        <form id="password-form">
-          <label>Obecne hasło<input name="currentPassword" type="password" required></label>
-          <label>Nowe hasło (minimum 10 znaków)<input name="password" type="password" minlength="10" required></label>
-          <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" minlength="10" required></label>
-          <button>Zmień hasło</button>
-        </form>
-      </section>
+        <div id="dashboard" class="hidden">
+          <section id="events-tab" class="tab-panel active">
+            <h2>Wydarzenia</h2>
+            <details class="panel">
+              <summary>Nowe wydarzenie</summary>
+              <div class="panel-body">
+                <form id="event-form">
+                  <label>Nazwa<input name="name" required></label>
+                  <label>Opis<textarea name="description"></textarea></label>
+                  <label>Termin<input name="eventDatetime" type="datetime-local" required></label>
+                  <label>Pojemność<input name="capacity" type="number" min="1" value="12" required></label>
+                  <button>Utwórz wydarzenie</button>
+                </form>
+              </div>
+            </details>
+            <details class="filters">
+              <summary>Filtry i sortowanie</summary>
+              <form id="events-filters" class="table-tools">
+                <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
+                <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
+                <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+                <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
+                <label>Zajęte<input name="registeredCount" type="text" placeholder="Filtruj po zapisach"></label>
+                <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
+                <label>Status
+                  <select name="status">
+                    <option value="">Wszystkie</option>
+                    <option value="current">Bieżące</option>
+                    <option value="archived">Archiwalne</option>
+                  </select>
+                </label>
+                <label>Uczestnicy<input name="participants" type="text" placeholder="Filtruj po uczestnikach"></label>
+                <div class="actions">
+                  <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
+                </div>
+              </form>
+            </details>
+            <div id="events" class="table-wrap"></div>
+          </section>
+
+          <section id="users-tab" class="tab-panel">
+            <h2>Rejestracja nowych użytkowników</h2>
+            <div class="card">
+              <label class="checkbox settings-toggle">
+                <input id="registration-toggle" type="checkbox">
+                Pozwól nowym użytkownikom rejestrować się w systemie
+              </label>
+              <p class="meta">Gdy opcja jest włączona, na ekranie logowania widnieje możliwość samodzielnej rejestracji.</p>
+            </div>
+
+            <h2>Użytkownicy</h2>
+            <details class="panel">
+              <summary>Zaproś użytkownika</summary>
+              <div class="panel-body">
+                <p class="meta">Użytkownik otrzyma e-mail, w którym sam ustawi pierwsze hasło.</p>
+                <form id="user-form">
+                  <label>E-mail<input name="email" type="email" required></label>
+                  <label>Imię i nazwisko<input name="fullName" required></label>
+                  <label>Rola<select name="role"><option value="user">Użytkownik</option><option value="admin">Administrator</option></select></label>
+                  <button>Wyślij zaproszenie</button>
+                </form>
+              </div>
+            </details>
+            <details class="filters">
+              <summary>Filtry i sortowanie</summary>
+              <form id="users-filters" class="table-tools">
+                <label>Imię i nazwisko<input name="fullName" type="text" placeholder="Filtruj po nazwisku"></label>
+                <label>E-mail<input name="email" type="text" placeholder="Filtruj po e-mailu"></label>
+                <label>Rola
+                  <select name="role">
+                    <option value="">Wszystkie</option>
+                    <option value="user">Użytkownik</option>
+                    <option value="admin">Administrator</option>
+                  </select>
+                </label>
+                <label>Status
+                  <select name="status">
+                    <option value="">Wszystkie</option>
+                    <option value="active">Aktywne</option>
+                    <option value="inactive">Nieaktywne</option>
+                  </select>
+                </label>
+                <div class="actions">
+                  <button class="secondary" type="reset" id="users-filters-reset">Wyczyść filtry</button>
+                </div>
+              </form>
+            </details>
+            <div id="users"></div>
+          </section>
+
+          <section id="account-tab" class="tab-panel">
+            <h2>Zmień własne hasło</h2>
+            <form id="password-form" class="card">
+              <label>Obecne hasło<input name="currentPassword" type="password" required></label>
+              <label>Nowe hasło (minimum 10 znaków)<input name="password" type="password" minlength="10" required></label>
+              <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" minlength="10" required></label>
+              <button>Zmień hasło</button>
+            </form>
+          </section>
+        </div>
+      </main>
     </div>
-  </main>
+  </div>
   <script type="module" src="/admin.js"></script>
 </body>
 </html>

@@ -7,109 +7,130 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>Zapisy na wydarzenia</h1>
-      <div id="session"></div>
-    </div>
-  </header>
-  <main class="container">
-    <div id="notice" class="notice hidden"></div>
-    <section id="login" class="card">
-      <h2>Zaloguj się</h2>
-      <form id="login-form">
-        <label>E-mail<input name="email" type="email" required></label>
-        <label>Hasło<input name="password" type="password" required></label>
-        <div class="actions">
-          <button>Zaloguj</button>
-          <button class="secondary" type="button" id="magic">Wyślij magic link</button>
-          <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
-          <button class="secondary hidden" type="button" id="show-registration">Nie masz konta, zarejestruj się</button>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand"><span class="brand-dot"></span>Zapisy</div>
+      <div>
+        <div class="sidebar-label">Moje konto</div>
+        <div class="tabs">
+          <button data-tab="events" class="active" aria-selected="true" type="button">Wydarzenia i zapisy</button>
+          <button data-tab="password" aria-selected="false" type="button">Zmień hasło</button>
         </div>
-      </form>
-    </section>
-
-    <section id="registration-section" class="card hidden">
-      <h2>Rejestracja</h2>
-      <form id="registration-form">
-        <label>Imię i nazwisko<input name="fullName" required></label>
-        <label>E-mail<input name="email" type="email" required></label>
-        <div class="actions">
-          <button>Zarejestruj się</button>
-          <button class="secondary" type="button" id="back-to-login">Wróć do logowania</button>
-        </div>
-      </form>
-    </section>
-
-    <section id="private-area" class="hidden">
-      <div class="tabs">
-        <button data-tab="events" class="active" aria-selected="true" type="button">Bieżące wydarzenia i moje zapisy</button>
-        <button data-tab="password" aria-selected="false" type="button">Zmień hasło</button>
       </div>
+      <div class="sidebar-foot">
+        <div id="session"></div>
+      </div>
+    </aside>
 
-      <section id="events-tab" class="tab-panel active">
-        <h2>Bieżące wydarzenia</h2>
-        <form id="events-filters" class="table-tools">
-          <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
-          <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
-          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
-          <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
-          <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
-          <label>Status
-            <select name="status">
-              <option value="">Wszystkie</option>
-              <option value="current">Bieżące</option>
-              <option value="archived">Archiwalne</option>
-            </select>
-          </label>
-          <label>Zapis
-            <select name="isRegistered">
-              <option value="">Wszystkie</option>
-              <option value="yes">Zapisane</option>
-              <option value="no">Niezapisane</option>
-            </select>
-          </label>
-          <div class="actions">
-            <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
-          </div>
-        </form>
-        <div id="events" class="table-wrap"></div>
-        <h2>Moje zapisy</h2>
-        <form id="mine-filters" class="table-tools">
-          <label>Wydarzenie<input name="eventName" type="text" placeholder="Filtruj po wydarzeniu"></label>
-          <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
-          <label>Status
-            <select name="status">
-              <option value="">Wszystkie</option>
-              <option value="current">Bieżące</option>
-              <option value="archived">Archiwalne</option>
-            </select>
-          </label>
-          <label>Rezygnacja
-            <select name="canCancel">
-              <option value="">Wszystkie</option>
-              <option value="yes">Możliwa</option>
-              <option value="no">Niedostępna</option>
-            </select>
-          </label>
-          <div class="actions">
-            <button class="secondary" type="reset" id="mine-filters-reset">Wyczyść filtry</button>
-          </div>
-        </form>
-        <div id="mine" class="table-wrap"></div>
-      </section>
+    <div class="content">
+      <header class="topbar">
+        <h1>Zapisy na wydarzenia</h1>
+      </header>
 
-      <section id="password-tab" class="tab-panel">
-        <h2>Zmień hasło</h2>
-        <form id="password-form" class="card">
-          <label>Obecne hasło<input name="currentPassword" type="password" required></label>
-          <label>Nowe hasło (minimum 10 znaków)<input name="password" type="password" minlength="10" required></label>
-          <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" minlength="10" required></label>
-          <button>Zmień hasło</button>
-        </form>
-      </section>
-    </section>
-  </main>
+      <main class="container">
+        <div id="notice" class="notice hidden"></div>
+
+        <section id="login" class="card">
+          <h2>Zaloguj się</h2>
+          <p class="meta">Hasłem albo jednorazowym linkiem wysłanym na e-mail.</p>
+          <form id="login-form">
+            <label>E-mail<input name="email" type="email" required></label>
+            <label>Hasło<input name="password" type="password" required></label>
+            <div class="actions">
+              <button>Zaloguj</button>
+              <button class="secondary" type="button" id="magic">Wyślij magic link</button>
+              <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
+              <button class="secondary hidden" type="button" id="show-registration">Nie masz konta, zarejestruj się</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="registration-section" class="card hidden">
+          <h2>Rejestracja</h2>
+          <p class="meta">Hasło ustawisz z linku, który wyślemy na podany adres.</p>
+          <form id="registration-form">
+            <label>Imię i nazwisko<input name="fullName" required></label>
+            <label>E-mail<input name="email" type="email" required></label>
+            <div class="actions">
+              <button>Zarejestruj się</button>
+              <button class="secondary" type="button" id="back-to-login">Wróć do logowania</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="private-area" class="hidden">
+          <section id="events-tab" class="tab-panel active">
+            <h2>Bieżące wydarzenia</h2>
+            <details class="filters">
+              <summary>Filtry i sortowanie</summary>
+              <form id="events-filters" class="table-tools">
+                <label>Nazwa<input name="name" type="text" placeholder="Filtruj po nazwie"></label>
+                <label>Opis<input name="description" type="text" placeholder="Filtruj po opisie"></label>
+                <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+                <label>Pojemność<input name="capacity" type="text" placeholder="Filtruj po pojemności"></label>
+                <label>Wolne<input name="remainingSeats" type="text" placeholder="Filtruj po wolnych miejscach"></label>
+                <label>Status
+                  <select name="status">
+                    <option value="">Wszystkie</option>
+                    <option value="current">Bieżące</option>
+                    <option value="archived">Archiwalne</option>
+                  </select>
+                </label>
+                <label>Zapis
+                  <select name="isRegistered">
+                    <option value="">Wszystkie</option>
+                    <option value="yes">Zapisane</option>
+                    <option value="no">Niezapisane</option>
+                  </select>
+                </label>
+                <div class="actions">
+                  <button class="secondary" type="reset" id="events-filters-reset">Wyczyść filtry</button>
+                </div>
+              </form>
+            </details>
+            <div id="events" class="table-wrap"></div>
+
+            <h2>Moje zapisy</h2>
+            <details class="filters">
+              <summary>Filtry i sortowanie</summary>
+              <form id="mine-filters" class="table-tools">
+                <label>Wydarzenie<input name="eventName" type="text" placeholder="Filtruj po wydarzeniu"></label>
+                <label>Termin<input name="eventDatetime" type="text" placeholder="Filtruj po terminie"></label>
+                <label>Status
+                  <select name="status">
+                    <option value="">Wszystkie</option>
+                    <option value="current">Bieżące</option>
+                    <option value="archived">Archiwalne</option>
+                  </select>
+                </label>
+                <label>Rezygnacja
+                  <select name="canCancel">
+                    <option value="">Wszystkie</option>
+                    <option value="yes">Możliwa</option>
+                    <option value="no">Niedostępna</option>
+                  </select>
+                </label>
+                <div class="actions">
+                  <button class="secondary" type="reset" id="mine-filters-reset">Wyczyść filtry</button>
+                </div>
+              </form>
+            </details>
+            <div id="mine" class="table-wrap"></div>
+          </section>
+
+          <section id="password-tab" class="tab-panel">
+            <h2>Zmień hasło</h2>
+            <form id="password-form" class="card">
+              <label>Obecne hasło<input name="currentPassword" type="password" required></label>
+              <label>Nowe hasło (minimum 10 znaków)<input name="password" type="password" minlength="10" required></label>
+              <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" minlength="10" required></label>
+              <button>Zmień hasło</button>
+            </form>
+          </section>
+        </section>
+      </main>
+    </div>
+  </div>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

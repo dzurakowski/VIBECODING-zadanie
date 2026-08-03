@@ -1,5 +1,5 @@
 /* Zapisy na wydarzenia — arkusz stylów interfejsu (wersja „1b v2”).
-   Zmieniony jest wyłącznie wygląd: wszystkie klasy i selektory używane przez
+   Zmieniony jest wyłącznie wygląd. Wszystkie klasy i selektory używane przez
    app.js, admin.js i public/shared/* zostały zachowane. */
 
 @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -92,25 +92,7 @@ a:hover { color: var(--accent-dark); }
   padding-top: 12px;
 }
 
-.content { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-
-.topbar {
-  background: var(--surface);
-  border-bottom: 1px solid var(--line);
-  padding: 14px 26px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
+.content { flex: 1; min-width: 0; min-width: 0; }
 
 .container {
   width: 100%;
@@ -120,26 +102,74 @@ a:hover { color: var(--accent-dark); }
 
 h1 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -.005em; }
 h2 { font-size: 13.5px; font-weight: 600; margin: 24px 0 12px; }
-h2:first-child { margin-top: 0; }
 h3 { font-size: 13px; font-weight: 600; margin: 0 0 8px; }
 
 .meta { color: var(--muted); font-size: 12px; margin: 4px 0 12px; }
 
-/* ── ekrany bez sesji (logowanie, rejestracja, ustawianie hasła) ───────── */
+/* nagłówek ekranu — biały pasek nad treścią zakładki */
+
+.page-head {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  margin: -22px -26px 22px;
+  padding: 14px 26px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.page-head h1 { font-size: 17px; }
+.page-head .sub { margin: 3px 0 0; font-size: 12px; color: var(--muted); }
+.page-head + h2 { margin-top: 0; }
+
+/* ── ekrany bez sesji: logowanie, rejestracja, ustawianie hasła ────────── */
 
 body:has(#private-area.hidden) .sidebar,
 body:has(#dashboard.hidden) .sidebar { display: none; }
 
 body:has(#private-area.hidden) .container,
-body:has(#dashboard.hidden) .container,
-body.auth .container {
-  max-width: 420px;
+body:has(#dashboard.hidden) .container {
+  max-width: 920px;
   margin: 0 auto;
   padding-top: 48px;
 }
 
-body.auth { display: block; }
-body.auth .container { padding: 48px 24px; }
+.auth-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.auth-aside {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  justify-content: space-between;
+}
+
+.auth-aside h2 {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.01em;
+  margin: 0 0 10px;
+}
+
+.auth-aside p { font-size: 13px; line-height: 1.6; color: var(--muted); margin: 0; max-width: 300px; }
+.auth-aside .fine { font-size: 12px; color: var(--faint); }
+
+.auth-forms { padding: 32px; }
+.auth-forms .card { background: transparent; border: 0; border-radius: 0; padding: 0; }
+.auth-forms h2 { font-size: 16px; margin: 0 0 4px; }
+
+body.auth .container { max-width: 420px; margin: 0 auto; padding: 48px 24px; }
 
 /* ── karty, formularze, pola ───────────────────────────────────────────── */
 
@@ -157,7 +187,6 @@ body.auth .container { padding: 48px 24px; }
 }
 
 form { margin: 0; }
-
 .card form { background: transparent; border: 0; padding: 0; }
 
 label {
@@ -180,6 +209,7 @@ input, select, textarea {
 }
 
 input:hover, select:hover, textarea:hover { border-color: #cdd0d3; }
+
 input:focus-visible, select:focus-visible, textarea:focus-visible {
   outline: none;
   border-color: var(--accent);
@@ -187,7 +217,6 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 
 textarea { min-height: 84px; resize: vertical; }
-
 ::placeholder { color: var(--faint); }
 
 .checkbox {
@@ -200,7 +229,6 @@ textarea { min-height: 84px; resize: vertical; }
 }
 
 .checkbox input { width: auto; margin: 0; accent-color: var(--accent); }
-
 .settings-toggle { margin: 8px 0 4px; }
 
 /* ── przyciski ─────────────────────────────────────────────────────────── */
@@ -251,7 +279,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 
-/* przyciski nawigacji (zakładki) — w sidebarze */
+/* nawigacja zakładek w sidebarze */
 
 .tabs { display: flex; flex-direction: column; gap: 2px; }
 
@@ -285,7 +313,7 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   width: 100%;
 }
 
-.session-name { font-size: 12.5px; font-weight: 500; padding: 0 6px; }
+.session-name { font-size: 12.5px; font-weight: 500; padding: 0 6px; order: -1; }
 
 .session-bar a {
   color: var(--muted) !important;
@@ -294,7 +322,6 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
 
 .session-bar a:hover { color: var(--text) !important; }
-
 .session-bar .logout { margin: 0; font-size: 12px; padding: 7px 10px; }
 
 /* ── komunikaty ────────────────────────────────────────────────────────── */
@@ -310,19 +337,19 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .notice.error { background: var(--danger-soft); color: #8e2b34; }
 
-/* ── zwijane panele: filtry i formularze ───────────────────────────────── */
+/* ── zwijane panele: formularze i filtry ───────────────────────────────── */
 
 details.panel, details.filters {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
 }
 
 details.panel > summary, details.filters > summary {
   list-style: none;
   cursor: pointer;
-  padding: 12px 14px;
+  padding: 11px 14px;
   font-size: 12.5px;
   font-weight: 500;
   color: var(--text);
@@ -346,7 +373,11 @@ details.panel[open] > summary, details.filters[open] > summary {
   border-bottom: 1px solid var(--line-soft);
 }
 
+details.panel > summary { color: var(--accent); }
 details.panel .panel-body { padding: 16px 14px; max-width: 460px; }
+
+.tool-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; }
+.tool-row > details { flex: 1 1 260px; }
 
 /* siatka filtrów */
 
@@ -363,26 +394,14 @@ details.panel .panel-body { padding: 16px 14px; max-width: 460px; }
 
 /* ── tabele ────────────────────────────────────────────────────────────── */
 
-.table-wrap {
+.table-wrap, #users {
   overflow-x: auto;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-}
-
-#users table, #events table, #mine table {
-  background: var(--surface);
-}
-
-#users {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow-x: auto;
 }
 
 table { width: 100%; border-collapse: collapse; background: var(--surface); }
-
 .table-wrap table { min-width: 1000px; }
 
 th {
@@ -406,11 +425,9 @@ td {
 }
 
 tr:last-child td { border-bottom: 0; }
-
-tbody tr:hover td, table tr:hover td { background: #fcfcfd; }
+table tr:hover td { background: #fcfcfd; }
 
 td .actions { justify-content: flex-start; }
-
 td button { font-size: 12px; padding: 7px 10px; }
 
 .table-sort {
@@ -431,10 +448,31 @@ td button { font-size: 12px; padding: 7px 10px; }
 }
 
 .table-sort:hover { background: transparent; color: var(--text); }
-
 .table-sort .sort-indicator { color: var(--faint); font-size: 11px; }
 .table-sort.active { color: var(--text); }
 .table-sort.active .sort-indicator { color: var(--accent); }
+
+/* treść komórek */
+
+.cell-name { font-weight: 500; }
+.cell-desc { display: block; font-size: 12px; color: var(--faint); max-width: 320px; }
+.cell-time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cell-time span { display: block; color: var(--faint); }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.num-empty { color: var(--danger); }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.pill-on { background: var(--accent-soft); color: var(--accent); }
+.pill-off { background: #f2f3f4; color: var(--muted); }
 
 /* uczestnicy */
 
@@ -447,6 +485,8 @@ td button { font-size: 12px; padding: 7px 10px; }
   color: var(--accent);
   font-size: 12.5px;
   font-weight: 500;
+  border-bottom: 1px solid #cfe0da;
+  display: inline-block;
 }
 
 /* ── pomocnicze ────────────────────────────────────────────────────────── */
@@ -470,18 +510,13 @@ td button { font-size: 12px; padding: 7px 10px; }
   }
 
   .tabs { flex-direction: row; flex-wrap: wrap; }
-
   .sidebar-label { display: none; }
-
-  .sidebar-foot {
-    margin: 0 0 0 auto;
-    border-top: 0;
-    padding-top: 0;
-  }
-
+  .sidebar-foot { margin: 0 0 0 auto; border-top: 0; padding-top: 0; }
   .session-bar { flex-direction: row; align-items: center; }
 
-  .topbar, .container { padding-left: 16px; padding-right: 16px; }
-
+  .container { padding-left: 16px; padding-right: 16px; }
+  .page-head { margin-left: -16px; margin-right: -16px; padding-left: 16px; padding-right: 16px; }
+  .auth-split { grid-template-columns: 1fr; }
+  .auth-aside { border-right: 0; border-bottom: 1px solid var(--line); }
   table { font-size: 12.5px; }
 }

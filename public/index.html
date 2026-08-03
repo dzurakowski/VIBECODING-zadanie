@@ -23,43 +23,57 @@
     </aside>
 
     <div class="content">
-      <header class="topbar">
-        <h1>Zapisy na wydarzenia</h1>
-      </header>
-
       <main class="container">
         <div id="notice" class="notice hidden"></div>
 
-        <section id="login" class="card">
-          <h2>Zaloguj się</h2>
-          <p class="meta">Hasłem albo jednorazowym linkiem wysłanym na e-mail.</p>
-          <form id="login-form">
-            <label>E-mail<input name="email" type="email" required></label>
-            <label>Hasło<input name="password" type="password" required></label>
-            <div class="actions">
-              <button>Zaloguj</button>
-              <button class="secondary" type="button" id="magic">Wyślij magic link</button>
-              <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
-              <button class="secondary hidden" type="button" id="show-registration">Nie masz konta, zarejestruj się</button>
+        <div class="auth-split">
+          <aside class="auth-aside">
+            <div class="brand" style="padding:0"><span class="brand-dot"></span>Zapisy na wydarzenia</div>
+            <div>
+              <h2>Zapisz się<br>na wydarzenie</h2>
+              <p>Logowanie hasłem albo jednorazowym linkiem wysłanym na e-mail.</p>
             </div>
-          </form>
-        </section>
+            <p class="fine">Konto zakłada administrator albo rejestracja własna, jeśli jest włączona.</p>
+          </aside>
+          <div class="auth-forms">
+            <section id="login" class="card">
+              <h2>Zaloguj się</h2>
+              <form id="login-form">
+                <label>E-mail<input name="email" type="email" required></label>
+                <label>Hasło<input name="password" type="password" required></label>
+                <div class="actions">
+                  <button>Zaloguj</button>
+                  <button class="secondary" type="button" id="magic">Wyślij magic link</button>
+                  <button class="secondary" type="button" id="reset">Nie pamiętam hasła</button>
+                  <button class="secondary hidden" type="button" id="show-registration">Nie masz konta, zarejestruj się</button>
+                </div>
+              </form>
+            </section>
 
-        <section id="registration-section" class="card hidden">
-          <h2>Rejestracja</h2>
-          <p class="meta">Hasło ustawisz z linku, który wyślemy na podany adres.</p>
-          <form id="registration-form">
-            <label>Imię i nazwisko<input name="fullName" required></label>
-            <label>E-mail<input name="email" type="email" required></label>
-            <div class="actions">
-              <button>Zarejestruj się</button>
-              <button class="secondary" type="button" id="back-to-login">Wróć do logowania</button>
-            </div>
-          </form>
-        </section>
+            <section id="registration-section" class="card hidden">
+              <h2>Rejestracja</h2>
+              <p class="meta">Hasło ustawisz z linku, który wyślemy na podany adres.</p>
+              <form id="registration-form">
+                <label>Imię i nazwisko<input name="fullName" required></label>
+                <label>E-mail<input name="email" type="email" required></label>
+                <div class="actions">
+                  <button>Zarejestruj się</button>
+                  <button class="secondary" type="button" id="back-to-login">Wróć do logowania</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </div>
 
         <section id="private-area" class="hidden">
           <section id="events-tab" class="tab-panel active">
+            <header class="page-head">
+              <div>
+                <h1>Wydarzenia i zapisy</h1>
+                <p class="sub">Bieżące wydarzenia oraz Twoje zapisy.</p>
+              </div>
+            </header>
+
             <h2>Bieżące wydarzenia</h2>
             <details class="filters">
               <summary>Filtry i sortowanie</summary>
@@ -119,8 +133,13 @@
           </section>
 
           <section id="password-tab" class="tab-panel">
-            <h2>Zmień hasło</h2>
-            <form id="password-form" class="card">
+            <header class="page-head">
+              <div>
+                <h1>Zmień hasło</h1>
+                <p class="sub">Nowe hasło musi mieć minimum 10 znaków.</p>
+              </div>
+            </header>
+            <form id="password-form" class="card" style="max-width:420px">
               <label>Obecne hasło<input name="currentPassword" type="password" required></label>
               <label>Nowe hasło (minimum 10 znaków)<input name="password" type="password" minlength="10" required></label>
               <label>Powtórz nowe hasło<input name="passwordConfirmation" type="password" minlength="10" required></label>

@@ -1,5 +1,5 @@
 import { defaultEventTableState, filterAndSortEvents, getEventStatusLabel } from './shared/eventTable.js';
-import { defaultUserTableState, filterAndSortUsers, getUserStatusLabel } from './shared/userTable.js';
+import { defaultUserTableState, filterAndSortUsers, renderUserRow } from './shared/userTable.js';
 import { createSessionBarMarkup } from './shared/sessionBar.js';
 
 const key = 'events_access_token';
@@ -125,7 +125,7 @@ const renderUsers = () => {
       <th><button class="table-sort ${usersState.sortBy === 'is_active' ? 'active' : ''}" type="button" data-user-sort="is_active">Status <span class="sort-indicator">${sortIndicator('is_active')}</span></button></th>
       <th>Akcje</th>
     </tr>
-    ${users.map((userRow) => `<tr><td>${userRow.full_name}</td><td>${userRow.email}</td><td>${userRow.role}</td><td>${getUserStatusLabel(userRow.is_active)}</td><td><div class="actions"><button class="secondary" data-user-action="${userRow.is_active ? 'deactivate' : 'restore'}" data-id="${userRow.id}">${userRow.is_active ? 'Dezaktywuj' : 'Przywróć'}</button><button class="danger" data-user-action="delete" data-id="${userRow.id}">Usuń trwale</button></div></td></tr>`).join('')}
+    ${users.map(renderUserRow).join('')}
   </table>`;
 
   document.querySelectorAll('[data-user-sort]').forEach((button) => {

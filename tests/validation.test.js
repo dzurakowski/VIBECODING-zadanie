@@ -10,3 +10,10 @@ test('waliduje dane wejściowe wydarzenia', () => {
   assert.throws(() => assertCapacity(0), HttpError);
   assert.throws(() => assertUuid('not-a-uuid'), HttpError);
 });
+
+test('odrzuca adresy e-mail zawierające znaki HTML (ochrona przed XSS)', () => {
+  assert.throws(() => assertEmail('"><script>alert(1)</script>@evil.example'), HttpError);
+  assert.throws(() => assertEmail('<img src=x>@evil.example'), HttpError);
+  assert.throws(() => assertEmail("o'brien'@evil.example"), HttpError);
+  assert.equal(assertEmail('jan.kowalski+test@example.com'), 'jan.kowalski+test@example.com');
+});

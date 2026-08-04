@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { filterAndSortUsers, sortUsers } from '../public/shared/userTable.js';
+import { filterAndSortUsers, renderUserRow, sortUsers } from '../public/shared/userTable.js';
 
 const users = [
   { full_name: 'Jan Kowalski', email: 'jan@example.com', role: 'user', is_active: true },
@@ -35,4 +35,29 @@ test('sortuje status tak, aby aktywni byli pierwsi przy sortowaniu rosnącym', (
     'Jan Kowalski',
     'Anna Nowak'
   ]);
+});
+
+test('escapuje imię, e-mail i rolę w wierszu użytkownika (ochrona przed stored XSS)', () => {
+  const markup = renderUserRow({
+    id: 'user-1',
+    full_name: '<img src=x onerror=alert(1)>',
+    email: '"><script>alert(1)</script>@evil.example',
+    role: 'user',
+    is_active: true
+  });
+
+  assert.doesNotMatch(markup, /<img/);
+  assert.doesNotMatch(markup, /<script>/);
+  assert.match(markup, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.match(markup, /&quot;&gt;&lt;script&gt;alert\(1\)&lt;\/script&gt;@evil\.example/);
+});
+
+test('renderuje status i akcje na podstawie is_active', () => {
+  const active = renderUserRow({ id: 'a', full_name: 'Jan', email: 'jan@example.com', role: 'user', is_active: true });
+  const inactive = renderUserRow({ id: 'b', full_name: 'Ala', email: 'ala@example.com', role: 'admin', is_active: false });
+
+  assert.match(active, /Aktywne/);
+  assert.match(active, /data-user-action="deactivate" data-id="a"/);
+  assert.match(inactive, /Nieaktywne/);
+  assert.match(inactive, /data-user-action="restore" data-id="b"/);
 });

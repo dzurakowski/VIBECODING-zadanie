@@ -31,6 +31,36 @@ test('blokuje wyłączenie ostatniego aktywnego administratora', async () => {
   assert.equal(changed, false);
 });
 
+test('mapuje błąd triggera LAST_ADMIN z bazy na 409 przy degradacji (ochrona przed race condition)', async () => {
+  const service = createUsersService({
+    find: async () => ({ id: 'admin-1', role: 'admin' }),
+    countAdmins: async () => 2,
+    update: async () => { throw new Error('LAST_ADMIN'); }
+  }, 'http://localhost:3000');
+
+  await assert.rejects(() => service.update('admin-1', { role: 'user' }), (error) => error instanceof HttpError && error.status === 409);
+});
+
+test('mapuje błąd triggera LAST_ADMIN z bazy na 409 przy dezaktywacji (ochrona przed race condition)', async () => {
+  const service = createUsersService({
+    find: async () => ({ id: 'admin-1', role: 'admin' }),
+    countAdmins: async () => 2,
+    setActive: async () => { throw new Error('LAST_ADMIN'); }
+  }, 'http://localhost:3000');
+
+  await assert.rejects(() => service.setActive('admin-1', false, 'other-admin'), (error) => error instanceof HttpError && error.status === 409);
+});
+
+test('mapuje błąd triggera LAST_ADMIN z bazy na 409 przy usuwaniu (ochrona przed race condition)', async () => {
+  const service = createUsersService({
+    find: async () => ({ id: 'admin-1', role: 'admin' }),
+    countAdmins: async () => 2,
+    deleteAuthUser: async () => { throw new Error('LAST_ADMIN'); }
+  }, 'http://localhost:3000');
+
+  await assert.rejects(() => service.remove('admin-1', 'other-admin'), (error) => error instanceof HttpError && error.status === 409);
+});
+
 test('pozwala zmienić rolę admina, jeśli istnieje drugi aktywny administrator', async () => {
   let updatedValues;
   const service = createUsersService({

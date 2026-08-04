@@ -4,6 +4,14 @@ const normalizeText = (value) => String(value ?? '').trim().toLocaleLowerCase('p
 
 const statusLabel = (isActive) => (isActive ? 'Aktywne' : 'Nieaktywne');
 
+const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  '\'': '&#39;'
+}[character]));
+
 const sortValue = (user, sortBy) => {
   if (sortBy === 'is_active') return user.is_active ? 0 : 1;
   if (sortBy === 'role') return user.role ?? '';
@@ -51,3 +59,5 @@ export const filterAndSortUsers = (users, state = defaultUserTableState) => sort
 );
 
 export const getUserStatusLabel = statusLabel;
+
+export const renderUserRow = (userRow) => `<tr><td>${escapeHtml(userRow.full_name)}</td><td>${escapeHtml(userRow.email)}</td><td>${escapeHtml(userRow.role)}</td><td>${statusLabel(userRow.is_active)}</td><td><div class="actions"><button class="secondary" data-user-action="${userRow.is_active ? 'deactivate' : 'restore'}" data-id="${userRow.id}">${userRow.is_active ? 'Dezaktywuj' : 'Przywróć'}</button><button class="danger" data-user-action="delete" data-id="${userRow.id}">Usuń trwale</button></div></td></tr>`;

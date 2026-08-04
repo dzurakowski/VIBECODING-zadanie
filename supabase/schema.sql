@@ -62,6 +62,36 @@ begin
   return result;
 end; $$;
 
+-- Atomowo blokuje sytuację, w której równoczesne żądania mogłyby ominąć aplikacyjny
+-- check "ostatni aktywny administrator" i doprowadzić do zera aktywnych adminów.
+create or replace function public.guard_last_admin() returns trigger
+language plpgsql as $$
+declare admin_count integer; was_admin boolean; becomes_admin boolean;
+begin
+  perform pg_advisory_xact_lock(hashtext('guard_last_admin'));
+
+  if TG_OP = 'DELETE' then
+    was_admin := old.role = 'admin' and old.is_active;
+    if was_admin then
+      select count(*) into admin_count from public.profiles where role = 'admin' and is_active = true and id <> old.id;
+      if admin_count = 0 then raise exception 'LAST_ADMIN'; end if;
+    end if;
+    return old;
+  end if;
+
+  was_admin := old.role = 'admin' and old.is_active;
+  becomes_admin := new.role = 'admin' and new.is_active;
+  if was_admin and not becomes_admin then
+    select count(*) into admin_count from public.profiles where role = 'admin' and is_active = true and id <> old.id;
+    if admin_count = 0 then raise exception 'LAST_ADMIN'; end if;
+  end if;
+  return new;
+end; $$;
+
+create trigger profiles_guard_last_admin
+  before update or delete on public.profiles
+  for each row execute function public.guard_last_admin();
+
 alter table public.profiles enable row level security;
 alter table public.events enable row level security;
 alter table public.registrations enable row level security;

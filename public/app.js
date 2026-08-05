@@ -1,11 +1,13 @@
 import { defaultPrivateTab, isPrivateTab, normalizePrivateTab } from './shared/privateTabs.js';
 import { defaultCurrentEventsState, filterAndSortCurrentEvents } from './shared/currentEventsTable.js';
 import { defaultRegistrationsTableState, filterAndSortRegistrations } from './shared/registrationsTable.js';
+import { showLoggedInPrivateView, showLoggedOutAuthView, showRegistrationAuthView } from './shared/authView.js';
 import { createSessionBarMarkup } from './shared/sessionBar.js';
+import { clearSessionTokens, parseSessionTokensFromHash, readSessionTokens, writeSessionTokens } from './shared/sessionTokens.js';
 
-const tokenKey = 'events_access_token';
 const notice = document.querySelector('#notice');
 const session = document.querySelector('#session');
+const authSplit = document.querySelector('.auth-split');
 const loginSection = document.querySelector('#login');
 const registrationSection = document.querySelector('#registration-section');
 const privateArea = document.querySelector('#private-area');
@@ -44,15 +46,42 @@ const registrationsState = {
 let allEvents = [];
 let allRegistrations = [];
 
-const callbackToken = new URLSearchParams(window.location.hash.slice(1)).get('access_token');
-if (callbackToken) {
-  localStorage.setItem(tokenKey, callbackToken);
+const callbackTokens = parseSessionTokensFromHash(window.location.hash);
+if (callbackTokens) {
+  writeSessionTokens(callbackTokens);
   history.replaceState(null, '', window.location.pathname);
 }
 
-const token = () => localStorage.getItem(tokenKey);
+const token = () => readSessionTokens()?.accessToken ?? null;
+let refreshSessionPromise = null;
 
-const api = async (path, options = {}) => {
+const refreshSession = async () => {
+  const tokens = readSessionTokens();
+  if (!tokens?.refreshToken) return false;
+  if (!refreshSessionPromise) {
+    refreshSessionPromise = (async () => {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refreshToken: tokens.refreshToken })
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.message);
+      writeSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return true;
+    })();
+  }
+  try {
+    return await refreshSessionPromise;
+  } catch {
+    clearSessionTokens();
+    return false;
+  } finally {
+    refreshSessionPromise = null;
+  }
+};
+
+const api = async (path, options = {}, canRetry = true) => {
   const response = await fetch(path, {
     ...options,
     headers: {
@@ -63,6 +92,9 @@ const api = async (path, options = {}) => {
   });
   const data = await response.json();
   if (!response.ok) {
+    if (response.status === 401 && canRetry && path !== '/api/auth/refresh' && await refreshSession()) {
+      return api(path, options, false);
+    }
     const error = Error(data.message);
     error.status = response.status;
     throw error;
@@ -74,6 +106,11 @@ const message = (text, error = false) => {
   notice.textContent = text;
   notice.className = `notice${error ? ' error' : ''}`;
   notice.classList.remove('hidden');
+};
+
+const clearNotice = () => {
+  notice.textContent = '';
+  notice.className = 'notice hidden';
 };
 
 const eventSortIndicator = (field) => {
@@ -175,20 +212,23 @@ const renderTabs = (activeTab) => {
 };
 
 const renderPrivateDashboard = () => {
-  loginSection.classList.add('hidden');
-  registrationSection.classList.add('hidden');
-  privateArea.classList.remove('hidden');
-  renderTabs(defaultPrivateTab);
+  showLoggedInPrivateView({
+    authSplit,
+    clearNotice,
+    loginSection,
+    registrationSection,
+    privateArea,
+    renderTabs,
+    defaultTab: defaultPrivateTab
+  });
 };
 
 const showLoginView = () => {
-  loginSection.classList.remove('hidden');
-  registrationSection.classList.add('hidden');
+  showLoggedOutAuthView({ authSplit, loginSection, registrationSection });
 };
 
 const showRegistrationView = () => {
-  loginSection.classList.add('hidden');
-  registrationSection.classList.remove('hidden');
+  showRegistrationAuthView({ authSplit, loginSection, registrationSection });
 };
 
 const updateRegistrationAvailability = (enabled) => {
@@ -198,7 +238,7 @@ const updateRegistrationAvailability = (enabled) => {
 };
 
 const resetPrivateView = () => {
-  localStorage.removeItem(tokenKey);
+  clearSessionTokens();
   session.textContent = '';
   showLoginView();
   privateArea.classList.add('hidden');
@@ -222,13 +262,15 @@ async function refreshRegistrationAvailability() {
     const { enabled } = await api('/api/auth/registration-status');
     updateRegistrationAvailability(Boolean(enabled));
   } catch {
-    updateRegistrationAvailability(false);
+    updateRegistrationAvailability(registrationEnabled);
+    message('Nie udało się sprawdzić, czy rejestracja jest dostępna.', true);
   }
 }
 
 async function refresh() {
+  const hadSession = Boolean(token() || readSessionTokens()?.refreshToken);
   try {
-    if (!token()) {
+    if (!token() && !await refreshSession()) {
       resetPrivateView();
       return;
     }
@@ -237,7 +279,7 @@ async function refresh() {
 
     session.innerHTML = createSessionBarMarkup(user.fullName);
     document.querySelector('#logout').onclick = () => {
-      localStorage.removeItem(tokenKey);
+      clearSessionTokens();
       location.reload();
     };
 
@@ -258,7 +300,7 @@ async function refresh() {
     renderCurrentEvents();
     renderRegistrations();
   } catch (error) {
-    if (token()) resetPrivateView();
+    if (hadSession) resetPrivateView();
     message(error.message, true);
   }
 }
@@ -326,7 +368,7 @@ document.querySelector('#login-form').onsubmit = async (event) => {
   event.preventDefault();
   try {
     const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.target))) });
-    localStorage.setItem(tokenKey, data.accessToken);
+    writeSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
     message(data.message);
     refresh();
   } catch (error) {

@@ -29,6 +29,7 @@ export const createApp = () => {
       const match = (pattern) => pathname.match(pattern);
       let result;
       if (request.method === 'POST' && pathname === '/api/auth/login') { result = await authService.login(body); return sendJson(response, 200, { message: 'Zalogowano.', ...result }); }
+      if (request.method === 'POST' && pathname === '/api/auth/refresh') { result = await authService.refresh(body); return sendJson(response, 200, { message: 'Sesja została odświeżona.', ...result }); }
       if (request.method === 'POST' && pathname === '/api/auth/magic-link') { await authService.magicLink(body); return sendJson(response, 200, { message: 'Link logowania został wysłany.' }); }
       if (request.method === 'POST' && pathname === '/api/auth/password-reset') { await authService.requestPasswordReset(body); return sendJson(response, 200, { message: 'Jeżeli konto istnieje, wysłaliśmy link do ustawienia nowego hasła.' }); }
       if (request.method === 'GET' && pathname === '/api/auth/registration-status') { return sendJson(response, 200, await authService.registrationStatus()); }

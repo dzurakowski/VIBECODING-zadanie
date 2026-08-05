@@ -29,3 +29,43 @@ test('blokuje rejestrację gdy opcja jest wyłączona', async () => {
 
   await assert.rejects(() => service.register({ email: 'user@example.com', fullName: 'Jan Kowalski' }), (error) => error instanceof HttpError && error.status === 403);
 });
+
+test('wysyła magic link na poprawny adres e-mail', async () => {
+  let request;
+  const service = createAuthService({
+    auth: {
+      signInWithOtp: async (input) => {
+        request = input;
+        return { error: null };
+      }
+    }
+  }, {}, { inviteUser: async () => {} }, {
+    registrationStatus: async () => true
+  }, 'http://localhost:3000');
+
+  await service.magicLink({ email: 'USER@example.com' });
+
+  assert.deepEqual(request, {
+    email: 'user@example.com',
+    options: {
+      emailRedirectTo: 'http://localhost:3000'
+    }
+  });
+});
+
+test('zgłasza błąd gdy nie da się wysłać magic linku', async () => {
+  const service = createAuthService({
+    auth: {
+      signInWithOtp: async () => ({ error: new Error('redirect URL is not allowed') })
+    }
+  }, {}, { inviteUser: async () => {} }, {
+    registrationStatus: async () => true
+  }, 'http://localhost:3000');
+
+  await assert.rejects(
+    () => service.magicLink({ email: 'user@example.com' }),
+    (error) => error instanceof HttpError
+      && error.status === 400
+      && error.message.includes('redirect URL is not allowed')
+  );
+});

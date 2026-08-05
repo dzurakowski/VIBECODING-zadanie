@@ -1,10 +1,14 @@
 import { defaultEventTableState, filterAndSortEvents, getEventStatusLabel } from './shared/eventTable.js';
 import { defaultUserTableState, filterAndSortUsers, renderUserRow } from './shared/userTable.js';
+import { showLoggedInDashboardView } from './shared/authView.js';
 import { createSessionBarMarkup } from './shared/sessionBar.js';
+import { clearSessionTokens, parseSessionTokensFromHash, readSessionTokens, writeSessionTokens } from './shared/sessionTokens.js';
 
-const key = 'events_access_token';
+const authSplit = document.querySelector('.auth-split');
 const notice = document.querySelector('#notice');
 const session = document.querySelector('#session');
+const loginSection = document.querySelector('#login');
+const dashboard = document.querySelector('#dashboard');
 const eventsTable = document.querySelector('#events');
 const eventsFiltersForm = document.querySelector('#events-filters');
 const eventsFiltersReset = document.querySelector('#events-filters-reset');
@@ -36,23 +40,55 @@ const usersState = {
 let allUsers = [];
 let allEvents = [];
 
-const callbackToken = new URLSearchParams(window.location.hash.slice(1)).get('access_token');
-if (callbackToken) {
-  localStorage.setItem(key, callbackToken);
+const callbackTokens = parseSessionTokensFromHash(window.location.hash);
+if (callbackTokens) {
+  writeSessionTokens(callbackTokens);
   history.replaceState(null, '', window.location.pathname);
 }
 
-const api = async (path, options = {}) => {
+const token = () => readSessionTokens()?.accessToken ?? null;
+let refreshSessionPromise = null;
+
+const refreshSession = async () => {
+  const tokens = readSessionTokens();
+  if (!tokens?.refreshToken) return false;
+  if (!refreshSessionPromise) {
+    refreshSessionPromise = (async () => {
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ refreshToken: tokens.refreshToken })
+      });
+      const data = await response.json();
+      if (!response.ok) throw Error(data.message);
+      writeSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
+      return true;
+    })();
+  }
+  try {
+    return await refreshSessionPromise;
+  } catch {
+    clearSessionTokens();
+    return false;
+  } finally {
+    refreshSessionPromise = null;
+  }
+};
+
+const api = async (path, options = {}, canRetry = true) => {
   const response = await fetch(path, {
     ...options,
     headers: {
       'content-type': 'application/json',
-      authorization: `Bearer ${localStorage.getItem(key)}`,
+      ...(token() ? { authorization: `Bearer ${token()}` } : {}),
       ...(options.headers ?? {})
     }
   });
   const data = await response.json();
   if (!response.ok) {
+    if (response.status === 401 && canRetry && path !== '/api/auth/refresh' && await refreshSession()) {
+      return api(path, options, false);
+    }
     const error = Error(data.message);
     error.status = response.status;
     throw error;
@@ -64,6 +100,11 @@ const message = (text, error = false) => {
   notice.textContent = text;
   notice.className = `notice ${error ? 'error' : ''}`;
   notice.classList.remove('hidden');
+};
+
+const clearNotice = () => {
+  notice.textContent = '';
+  notice.className = 'notice hidden';
 };
 
 const clearError = () => {
@@ -227,7 +268,7 @@ usersFiltersForm.addEventListener('submit', (event) => {
 });
 
 const resetAdminView = () => {
-  localStorage.removeItem(key);
+  clearSessionTokens();
   session.textContent = '';
   document.querySelector('#dashboard').classList.add('hidden');
   document.querySelector('#login').classList.remove('hidden');
@@ -257,7 +298,9 @@ document.querySelectorAll('[data-tab]').forEach((button) => {
 });
 
 registrationToggle.onchange = async () => {
+  const previous = !registrationToggle.checked;
   try {
+    registrationToggle.disabled = true;
     const { enabled } = await api('/api/admin/registration-settings', {
       method: 'PATCH',
       body: JSON.stringify({ enabled: registrationToggle.checked })
@@ -265,22 +308,33 @@ registrationToggle.onchange = async () => {
     registrationToggle.checked = Boolean(enabled);
     message('Zapisano zmianę.');
   } catch (error) {
+    registrationToggle.checked = previous;
     if ([401, 403].includes(error.status)) resetAdminView();
     message(error.message, true);
+  } finally {
+    if (registrationToggle.isConnected) registrationToggle.disabled = false;
   }
 };
 
 async function refresh() {
   try {
+    if (!token() && !await refreshSession()) {
+      resetAdminView();
+      return;
+    }
     const { user } = await api('/api/auth/me');
     if (user.role !== 'admin') throw Error('Konto nie ma roli administratora.');
 
-    clearError();
-    document.querySelector('#login').classList.add('hidden');
-    document.querySelector('#dashboard').classList.remove('hidden');
+    clearNotice();
+    showLoggedInDashboardView({
+      authSplit,
+      clearNotice,
+      loginSection,
+      dashboard
+    });
     session.innerHTML = createSessionBarMarkup(user.fullName, { showSwitchLink: true });
     document.querySelector('#logout').onclick = () => {
-      localStorage.removeItem(key);
+      clearSessionTokens();
       location.reload();
     };
 
@@ -333,7 +387,7 @@ document.querySelector('#login-form').onsubmit = async (event) => {
   event.preventDefault();
   try {
     const data = await api('/api/auth/login', { method: 'POST', body: JSON.stringify(Object.fromEntries(new FormData(event.target))) });
-    localStorage.setItem(key, data.accessToken);
+    writeSessionTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken });
     refresh();
   } catch (error) {
     message(error.message, true);
@@ -401,4 +455,4 @@ document.querySelector('#password-form').onsubmit = async (event) => {
   }
 };
 
-if (localStorage.getItem(key)) refresh();
+if (readSessionTokens()) refresh();

@@ -575,9 +575,8 @@ W produkcji należy ustawić:
 - poprawne redirect URL w Supabase Auth;
 - SMTP dla wiadomości systemowych.
 
-Szczegóły znajdują się w [dokumentacji hostingu](HOSTING.md) oraz w instrukcji
-konfiguracji domeny i poczty
-([INSTRUKCJA_DOMENA_RAILWAY_SUPABASE.md](../INSTRUKCJA_DOMENA_RAILWAY_SUPABASE.md)).
+Konfigurację platformy wdrożeniowej, domeny, DNS, SMTP i redirect URL należy
+wykonać zgodnie z dokumentacją używanego dostawcy oraz ustawieniami Supabase.
 
 ## 17. Kryterium gotowości funkcji
 

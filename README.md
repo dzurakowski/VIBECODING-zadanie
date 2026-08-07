@@ -172,8 +172,8 @@ Aplikację można wdrożyć na Railway. W środowisku produkcyjnym należy ustaw
 - poprawne adresy redirect w Supabase Auth;
 - konfigurację SMTP dla wiadomości e-mail.
 
-Szczegółowa instrukcja znajduje się w
-[dokumentacji wdrożenia i hostingu](docs/HOSTING.md).
+Konfigurację platformy wdrożeniowej, domeny, DNS, SMTP i redirect URL należy
+wykonać zgodnie z dokumentacją używanego dostawcy oraz ustawieniami Supabase.
 
 ## Status projektu
 
@@ -187,5 +187,4 @@ Projekt prywatny, bez udzielonej licencji open source.
 ## Dodatkowa dokumentacja
 
 - [Specyfikacja rozwiązania](docs/SPECYFIKACJA.md);
-- [Wdrożenie i hosting](docs/HOSTING.md);
-- [Instrukcja domeny, DNS, HTTPS i poczty Supabase](INSTRUKCJA_DOMENA_RAILWAY_SUPABASE.md).
+- konfiguracja wdrożenia zależna od wybranego dostawcy hostingu i projektu Supabase.

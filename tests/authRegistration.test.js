@@ -69,3 +69,39 @@ test('zgłasza błąd gdy nie da się wysłać magic linku', async () => {
       && error.message.includes('redirect URL is not allowed')
   );
 });
+
+test('mapuje przekroczenie limitu e-maili dla magic linku na czytelny błąd 429', async () => {
+  const service = createAuthService({
+    auth: {
+      signInWithOtp: async () => ({
+        error: { status: 429, code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' }
+      })
+    }
+  }, {}, { inviteUser: async () => {} }, {
+    registrationStatus: async () => true
+  }, 'http://localhost:3000');
+
+  await assert.rejects(
+    () => service.magicLink({ email: 'user@example.com' }),
+    (error) => error instanceof HttpError
+      && error.status === 429
+      && error.message === 'Przekroczono limit wysyłania wiadomości e-mail. Spróbuj ponownie później.'
+  );
+});
+
+test('mapuje przekroczenie limitu e-maili dla zaproszenia na czytelny błąd 429', async () => {
+  const service = createAuthService({}, {}, {
+    inviteUser: async () => {
+      throw { status: 429, code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' };
+    }
+  }, {
+    registrationStatus: async () => true
+  }, 'http://localhost:3000');
+
+  await assert.rejects(
+    () => service.register({ email: 'user@example.com', fullName: 'Jan Kowalski' }),
+    (error) => error instanceof HttpError
+      && error.status === 429
+      && error.message === 'Przekroczono limit wysyłania wiadomości e-mail. Spróbuj ponownie później.'
+  );
+});

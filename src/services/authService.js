@@ -1,6 +1,11 @@
 import { HttpError } from '../utils/http.js';
 import { assertEmail, assertText } from '../utils/validation.js';
 
+const isEmailRateLimitError = (error) => error?.code === 'over_email_send_rate_limit'
+  || error?.status === 429 && String(error?.message ?? '').toLowerCase().includes('email rate limit');
+
+const emailRateLimitError = () => new HttpError(429, 'Przekroczono limit wysyłania wiadomości e-mail. Spróbuj ponownie później.');
+
 export const createAuthService = (client, adminClient, users, settings, appUrl) => ({
   async login(input) { const email = assertEmail(input.email); const password = assertText(input.password, 'Hasło'); const { data, error } = await client.auth.signInWithPassword({ email, password }); if (error) throw new HttpError(401, 'Nieprawidłowy e-mail lub hasło.'); const profile = await users.find(data.user.id); return { user: { id: profile.id, email: profile.email, fullName: profile.full_name, role: profile.role }, accessToken: data.session.access_token, refreshToken: data.session.refresh_token }; },
   async refresh(input) {
@@ -15,6 +20,7 @@ export const createAuthService = (client, adminClient, users, settings, appUrl) 
     const email = assertEmail(input.email);
     const { error } = await client.auth.signInWithOtp({ email, options: { emailRedirectTo: appUrl } });
     if (error) {
+      if (isEmailRateLimitError(error)) throw emailRateLimitError();
       console.error('Nie udało się wysłać magic linku', error);
       const detail = typeof error.message === 'string' && error.message.trim() ? `: ${error.message.trim()}` : '.';
       throw new HttpError(400, `Nie udało się wysłać linku logowania${detail}`);
@@ -29,6 +35,7 @@ export const createAuthService = (client, adminClient, users, settings, appUrl) 
     try {
       await users.inviteUser({ email, fullName, role: 'user', redirectTo: `${appUrl}/set-password` });
     } catch (error) {
+      if (isEmailRateLimitError(error)) throw emailRateLimitError();
       if (error?.code === 'email_exists' || String(error?.message ?? '').toLowerCase().includes('already')) {
         throw new HttpError(409, 'Konto z takim adresem e-mail już istnieje.');
       }

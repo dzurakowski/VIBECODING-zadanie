@@ -1,6 +1,11 @@
 import { HttpError } from '../utils/http.js';
 import { assertEmail, assertRole, assertText } from '../utils/validation.js';
 
+const isEmailRateLimitError = (error) => error?.code === 'over_email_send_rate_limit'
+  || error?.status === 429 && String(error?.message ?? '').toLowerCase().includes('email rate limit');
+
+const emailRateLimitError = () => new HttpError(429, 'Przekroczono limit wysyłania wiadomości e-mail. Spróbuj ponownie później.');
+
 // Ochrona aplikacyjna (countAdmins) daje szybki, czytelny błąd w zwykłym przypadku.
 // Trigger `guard_last_admin` w bazie jest ostateczną, atomową barierą na wypadek
 // równoczesnych żądań (np. dwóch adminów degradujących się nawzajem naraz) —
@@ -12,7 +17,17 @@ const guardLastAdmin = async (operation, message) => {
 
 export const createUsersService = (repository, appUrl) => ({
   list: () => repository.list(),
-  async create(input) { const email = assertEmail(input.email); const fullName = assertText(input.fullName, 'Imię i nazwisko'); const role = assertRole(input.role ?? 'user'); return repository.inviteUser({ email, fullName, role, redirectTo: `${appUrl}/set-password` }); },
+  async create(input) {
+    const email = assertEmail(input.email);
+    const fullName = assertText(input.fullName, 'Imię i nazwisko');
+    const role = assertRole(input.role ?? 'user');
+    try {
+      return await repository.inviteUser({ email, fullName, role, redirectTo: `${appUrl}/set-password` });
+    } catch (error) {
+      if (isEmailRateLimitError(error)) throw emailRateLimitError();
+      throw error;
+    }
+  },
   async update(id, input) {
     const target = await repository.find(id);
     if (!target) throw new HttpError(404, 'Użytkownik nie istnieje.');
